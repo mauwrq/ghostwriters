@@ -20,11 +20,10 @@ import {
   VOTE_MS,
 } from './logic'
 import { PROMPTS } from './prompts'
-import { PLAYER_COLORS } from './room'
 import type { Player, Room } from './types'
 
 function player(overrides: Partial<Player> = {}): Player {
-  return { name: 'p', color: PLAYER_COLORS[0], score: 0, connected: true, joinedAt: 0, ...overrides }
+  return { name: 'p', look: 0, score: 0, connected: true, joinedAt: 0, ...overrides }
 }
 
 function room(overrides: Partial<Room> = {}): Room {

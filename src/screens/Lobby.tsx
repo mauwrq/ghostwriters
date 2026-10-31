@@ -33,8 +33,8 @@ export function Lobby({ code, room, playerId, onLeave }: Props) {
           <ul className="player-list">
             {players.map(([id, player]) => (
               <li key={id} className={player.connected ? 'player' : 'player player--away'}>
-                <Ghost color={player.color} size={32} />
-                <span className="player__name" style={{ color: player.color }}>
+                <Ghost look={player.look} size={32} />
+                <span className="player__name">
                   {player.name}
                 </span>
                 {id === room.hostId && <span className="tag tag--host">{text.host}</span>}

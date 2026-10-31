@@ -1,5 +1,5 @@
 import { child, get, onDisconnect, ref, remove, runTransaction, set } from 'firebase/database'
-import { generateRoomCode, isFull, pickColor, PLAYER_COLORS, sortedPlayers } from '../game/room'
+import { generateRoomCode, isFull, pickLook, sortedPlayers } from '../game/room'
 import { DEFAULT_ROUNDS, type Phase, type Player, type Room } from '../game/types'
 import { db, serverNow } from './firebase'
 
@@ -37,7 +37,7 @@ export async function createRoom(playerId: string, name: string): Promise<string
       phaseEndsAt: null,
       prompt: '',
       players: {
-        [playerId]: { name, color: PLAYER_COLORS[0], score: 0, connected: true, joinedAt: now },
+        [playerId]: { name, look: 0, score: 0, connected: true, joinedAt: now },
       },
     }
     const result = await runTransaction(roomRef(code), (current) => (current === null ? room : undefined))
@@ -51,8 +51,8 @@ export async function joinRoom(code: string, playerId: string, name: string): Pr
   if (!phaseSnap.exists()) throw new RoomError('not-found')
   const phase = phaseSnap.val() as Phase
 
-  // The color and the player count are checked inside a transaction so two
-  // people joining at once can't get the same color or overfill the room.
+  // The look and the player count are checked inside a transaction so two
+  // people joining at once can't get the same look or overfill the room.
   let failure: RoomErrorCode | null = null
   const result = await runTransaction(child(roomRef(code), 'players'), (current: Record<string, Player> | null) => {
     failure = null
@@ -65,14 +65,14 @@ export async function joinRoom(code: string, playerId: string, name: string): Pr
       failure = 'in-progress'
       return undefined
     }
-    const color = pickColor(players)
-    if (isFull(players) || !color) {
+    const look = pickLook(players)
+    if (isFull(players) || look === undefined) {
       failure = 'full'
       return undefined
     }
     return {
       ...players,
-      [playerId]: { name, color, score: 0, connected: true, joinedAt: serverNow() },
+      [playerId]: { name, look, score: 0, connected: true, joinedAt: serverNow() },
     }
   })
   if (!result.committed) throw new RoomError(failure ?? 'full')

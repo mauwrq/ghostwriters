@@ -5,9 +5,8 @@ import { MAX_NAME_LENGTH, MAX_PLAYERS, MIN_PLAYERS, type Player } from './types'
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
 export const ROOM_CODE_LENGTH = 4
 
-// Stored on each player and used directly as a CSS color, so the actual
-// values stay in tokens.css.
-export const PLAYER_COLORS = Array.from({ length: MAX_PLAYERS }, (_, i) => `var(--player-${i + 1})`)
+// One ghost pattern per player slot.
+export const PLAYER_LOOKS = Array.from({ length: MAX_PLAYERS }, (_, i) => i)
 
 export type Players = Record<string, Player> | null | undefined
 
@@ -39,9 +38,9 @@ export function sortedPlayers(players: Players): [string, Player][] {
     .sort(([idA, a], [idB, b]) => a.joinedAt - b.joinedAt || idA.localeCompare(idB))
 }
 
-export function pickColor(players: Players): string | undefined {
-  const used = new Set(sortedPlayers(players).map(([, p]) => p.color))
-  return PLAYER_COLORS.find((c) => !used.has(c))
+export function pickLook(players: Players): number | undefined {
+  const used = new Set(sortedPlayers(players).map(([, p]) => p.look))
+  return PLAYER_LOOKS.find((look) => !used.has(look))
 }
 
 export function isFull(players: Players): boolean {

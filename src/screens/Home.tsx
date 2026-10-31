@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Ghost } from '../components/Ghost'
 import { Logo } from '../components/Logo'
-import { cleanName, isValidRoomCode, normalizeRoomCode, PLAYER_COLORS } from '../game/room'
+import { cleanName, isValidRoomCode, normalizeRoomCode, PLAYER_LOOKS } from '../game/room'
 import { MAX_NAME_LENGTH } from '../game/types'
 import { getPlayerId, getSavedName, saveName } from '../lib/identity'
 import { createRoom, joinRoom, RoomError } from '../lib/rooms'
@@ -47,9 +47,9 @@ export function Home({ initialCode, initialError, onEnterRoom }: Props) {
       <Logo />
 
       <div className="home__ghosts">
-        {PLAYER_COLORS.map((color, i) => (
-          <span key={color} className="bob" style={{ animationDelay: `${i * -0.3}s` }}>
-            <Ghost color={color} size={36} />
+        {PLAYER_LOOKS.map((look) => (
+          <span key={look} className="bob" style={{ animationDelay: `${look * -0.3}s` }}>
+            <Ghost look={look} size={40} />
           </span>
         ))}
       </div>

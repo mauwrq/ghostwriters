@@ -11,7 +11,7 @@ export function PlayerProgress({ room, doneIds, label }: { room: Room; doneIds: 
       <div className="progress__ghosts">
         {players.map(([id, player]) => (
           <span key={id} className={doneIds.includes(id) ? 'progress__ghost progress__ghost--done' : 'progress__ghost'} title={player.name}>
-            <Ghost color={player.color} size={28} />
+            <Ghost look={player.look} size={28} />
           </span>
         ))}
       </div>

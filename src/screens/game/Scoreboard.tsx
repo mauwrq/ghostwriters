@@ -16,8 +16,8 @@ export function Scoreboard({ room, gained = {}, highlight = [] }: Props) {
     <ol className="scoreboard">
       {players.map(([id, player]) => (
         <li key={id} className={highlight.includes(id) ? 'score score--highlight' : 'score'}>
-          <Ghost color={player.color} size={28} />
-          <span className="score__name" style={{ color: player.color }}>
+          <Ghost look={player.look} size={28} />
+          <span className="score__name">
             {player.name}
           </span>
           {gained[id] ? <span className="score__gained">+{gained[id]}</span> : null}

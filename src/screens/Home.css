@@ -3,16 +3,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
   padding: var(--space-5) var(--space-3);
 }
 
 .home__ghosts {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-1);
-  margin-bottom: var(--space-2);
+  max-width: 420px;
+}
+
+/* Shrink to keep all eight on one row on narrow phones. */
+.home__ghosts .ghost {
+  width: min(40px, calc((100vw - 64px) / 8));
+  height: auto;
 }
 
 .home__panel {
@@ -20,28 +25,28 @@
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .home__join {
   display: flex;
-  gap: var(--space-2);
+  align-items: flex-end;
+  gap: var(--space-3);
 }
 
 .home__code {
-  flex: 0 0 8.5em;
+  flex: 0 1 7em;
+  min-width: 5em;
   text-align: center;
+  text-transform: uppercase;
   letter-spacing: 0.2em;
 }
 
 .home__code::placeholder {
+  text-transform: none;
   letter-spacing: normal;
 }
 
 .home__join .btn {
   flex: 1;
-}
-
-.home .btn {
-  font-size: var(--font-size-lg);
 }

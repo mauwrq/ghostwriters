@@ -1,43 +1,32 @@
 /*
  * Design tokens. Every color, font, and spacing value in the app should come
- * from here, so the Day 4 design pass is mostly editing this one file.
+ * from here.
+ *
+ * Two themes: "paper" (black ink on white, for the menus and lobby) and
+ * "void" (white chalk on black, once the game starts). Components only use
+ * --bg and --ink, so they work in both.
  */
 :root {
-  /* Haunted parlor palette */
-  --color-bg: #1b1220;          /* dark plum wallpaper */
-  --color-surface: #2a1d31;     /* panels and cards */
-  --color-board: #c9a46a;       /* Ouija board wood */
-  --color-board-ink: #3a2414;   /* letters burned into the board */
-  --color-text: #f3e9d2;        /* candlelit parchment */
-  --color-text-muted: #b8a88c;
-  --color-accent: #ff8a3d;      /* pumpkin orange */
-  --color-accent-ink: #1b1220;  /* text on accent buttons */
-  --color-ghost: #b9f3e4;       /* spectral glow */
-  --color-danger: #ff5c7a;
-  --color-surface-raised: rgb(255 255 255 / 0.06);
-  --color-outline: #120c16;     /* outlines on the logo and avatars */
-  --color-input: #f3e9d2;
-  --color-input-ink: #1b1220;
-  --color-go: #4fc23a;          /* main action buttons */
-  --color-alt: #3a86e0;         /* secondary buttons */
-
-  /* Player colors, assigned on join (max 8 players) */
-  --player-1: #ff8a3d;
-  --player-2: #7ee081;
-  --player-3: #6ec3ff;
-  --player-4: #ff6fb5;
-  --player-5: #ffd84d;
-  --player-6: #b98cff;
-  --player-7: #4ff0d2;
-  --player-8: #ff6b6b;
+  --bg: #f7f6f2;
+  --ink: #141414;
+  --ink-soft: #77756f;
+  --ink-faint: rgb(0 0 0 / 0.06);
+  /* Swapped values for filled-in areas (a chosen option, the winner). */
+  --inv-bg: #141414;
+  --inv-ink: #f7f6f2;
+  --inv-ink-soft: #a9a7a0;
 
   /* Type */
-  --font-display: "Nunito", system-ui, sans-serif;
-  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.5rem;
-  --font-size-xl: 2.5rem;
+  --font-display: "Gaegu", "Comic Sans MS", cursive;
+  --font-body: "Gaegu", "Comic Sans MS", cursive;
+  --font-size-sm: 1rem;
+  --font-size-md: 1.25rem;
+  --font-size-lg: 1.75rem;
+  --font-size-xl: 3rem;
+
+  /* Lines */
+  --line: 2px;
+  --line-thick: 3px;
 
   /* Spacing and shape */
   --space-1: 4px;
@@ -45,7 +34,19 @@
   --space-3: 16px;
   --space-4: 24px;
   --space-5: 40px;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 6px 24px rgb(0 0 0 / 0.4);
+  --radius: 3px;
+  --radius-sm: 2px;
+
+  /* How long the paper-to-void switch takes */
+  --theme-fade: 0.9s;
+}
+
+:root[data-theme="void"] {
+  --bg: #070707;
+  --ink: #efeee9;
+  --ink-soft: #8a8984;
+  --ink-faint: rgb(255 255 255 / 0.08);
+  --inv-bg: #efeee9;
+  --inv-ink: #070707;
+  --inv-ink-soft: #5b5a55;
 }

@@ -51,8 +51,8 @@ function Author({ room, playerId, votes, small = false }: { room: Room; playerId
   if (!player?.name) return null
   return (
     <span className={small ? 'author author--small' : 'author'}>
-      <Ghost color={player.color} size={small ? 20 : 32} />
-      <span style={{ color: player.color }}>{player.name}</span>
+      <Ghost look={player.look} size={small ? 20 : 32} />
+      <span>{player.name}</span>
       <span className="author__votes">{text.votes(votes)}</span>
     </span>
   )

@@ -39,7 +39,7 @@ export function ChoiceBoard({ room, choices, votes, playerId, onVote }: Props) {
                 <span className="option__voters">
                   {voters.map(([id, player]) => (
                     <span key={id} title={player.name}>
-                      <Ghost color={player.color} size={22} />
+                      <Ghost look={player.look} size={22} />
                     </span>
                   ))}
                 </span>

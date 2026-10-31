@@ -13,7 +13,8 @@ export type Phase =
 
 export interface Player {
   name: string
-  color: string
+  // Which ghost pattern this player has (0 to MAX_PLAYERS - 1), unique in the room.
+  look: number
   score: number
   connected: boolean
   joinedAt: number

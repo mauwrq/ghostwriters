@@ -5,15 +5,15 @@ import {
   generateRoomCode,
   isValidRoomCode,
   normalizeRoomCode,
-  PLAYER_COLORS,
-  pickColor,
+  PLAYER_LOOKS,
+  pickLook,
   pickNextHost,
   sortedPlayers,
 } from './room'
 import type { Player } from './types'
 
 function player(overrides: Partial<Player> = {}): Player {
-  return { name: 'p', color: PLAYER_COLORS[0], score: 0, connected: true, joinedAt: 0, ...overrides }
+  return { name: 'p', look: 0, score: 0, connected: true, joinedAt: 0, ...overrides }
 }
 
 describe('room codes', () => {
@@ -49,15 +49,15 @@ describe('players', () => {
     expect(sortedPlayers(players).map(([id]) => id)).toEqual(['a', 'b'])
   })
 
-  it('picks the first unused color', () => {
-    const players = { a: player({ color: PLAYER_COLORS[0] }), b: player({ color: PLAYER_COLORS[2] }) }
-    expect(pickColor(players)).toBe(PLAYER_COLORS[1])
-    expect(pickColor({})).toBe(PLAYER_COLORS[0])
+  it('picks the first unused look', () => {
+    const players = { a: player({ look: 0 }), b: player({ look: 2 }) }
+    expect(pickLook(players)).toBe(1)
+    expect(pickLook({})).toBe(0)
   })
 
-  it('returns no color when all are taken', () => {
-    const players = Object.fromEntries(PLAYER_COLORS.map((color, i) => [`p${i}`, player({ color })]))
-    expect(pickColor(players)).toBeUndefined()
+  it('returns no look when all are taken', () => {
+    const players = Object.fromEntries(PLAYER_LOOKS.map((look) => [`p${look}`, player({ look })]))
+    expect(pickLook(players)).toBeUndefined()
   })
 
   it('needs 3 connected players to start', () => {

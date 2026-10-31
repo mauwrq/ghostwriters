@@ -1,35 +1,100 @@
 /* Shared building blocks used across screens. */
 
+/* --- Hand-drawn lines -------------------------------------------------- */
+
+/*
+ * Boxes get their outline from a ::before layer run through the wobble
+ * filters (defined in index.html), so the line looks hand-drawn and "boils"
+ * while the text inside stays crisp.
+ */
+.panel,
+.option,
+.player,
+.score,
+.reveal__item {
+  position: relative;
+}
+
+.panel::before,
+.option::before,
+.player::before,
+.score::before,
+.reveal__item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: var(--line) solid var(--ink);
+  border-radius: var(--radius);
+  pointer-events: none;
+  transition: border-color var(--theme-fade) ease;
+}
+
+.sketchy,
+.panel::before,
+.option::before,
+.player::before,
+.score::before,
+.reveal__item::before,
+.ghost,
+.logo {
+  filter: url(#wobble-1);
+  animation: boil 0.5s steps(1) infinite;
+}
+
+@keyframes boil {
+  0% {
+    filter: url(#wobble-1);
+  }
+  33% {
+    filter: url(#wobble-2);
+  }
+  66% {
+    filter: url(#wobble-3);
+  }
+}
+
+/*
+ * Filled-in areas swap ink and background for everything inside them,
+ * including ghosts and outlines. The parent paints the fill with the old ink.
+ */
+.option--chosen > *,
+.score--highlight > * {
+  --bg: var(--inv-bg);
+  --ink: var(--inv-ink);
+  --ink-soft: var(--inv-ink-soft);
+  color: var(--ink);
+}
+
+/* --- Title ------------------------------------------------------------- */
+
 .logo {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: clamp(2.5rem, 13vw, 5rem);
-  line-height: 1;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 17vw, 6.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
   text-align: center;
-  text-shadow:
-    -3px 0 var(--color-outline),
-    3px 0 var(--color-outline),
-    0 -3px var(--color-outline),
-    0 3px var(--color-outline),
-    3px 6px 0 var(--color-outline);
 }
 
 .logo--small {
-  font-size: clamp(2rem, 9vw, 3rem);
+  font-size: clamp(2.25rem, 10vw, 3.25rem);
 }
+
+/* --- Panels and text ---------------------------------------------------- */
 
 .panel {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  padding: var(--space-3);
-  box-shadow: var(--shadow);
+  padding: var(--space-4) var(--space-3);
 }
 
-.panel__title {
-  font-size: var(--font-size-md);
-  margin: 0 0 var(--space-2);
+.panel__title,
+.label {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
 }
 
 .field {
@@ -38,100 +103,148 @@
   gap: var(--space-1);
 }
 
-.label {
+.hint {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-soft);
   font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: var(--color-text-muted);
-}
-
-/* 16px or larger, or iOS Safari zooms in when the field is focused. */
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 2px solid transparent;
-  border-radius: var(--radius-sm);
-  background: var(--color-input);
-  color: var(--color-input-ink);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.input:disabled {
-  opacity: 0.7;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-display);
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 2px 0 rgb(0 0 0 / 0.25);
-  cursor: pointer;
-  transition: filter 0.1s, transform 0.1s;
-}
-
-.btn:hover:not(:disabled) {
-  filter: brightness(1.1);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(2px);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn--go {
-  background: var(--color-go);
-}
-
-.btn--alt {
-  background: var(--color-alt);
-}
-
-.btn--big {
-  font-size: var(--font-size-lg);
-  padding: 14px 16px;
-}
-
-.btn--quiet {
-  background: transparent;
-  color: var(--color-text-muted);
-  text-shadow: none;
-  font-weight: 700;
-}
-
-.tag {
-  flex-shrink: 0;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: var(--color-surface-raised);
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.tag--host {
-  color: var(--color-accent);
 }
 
 .form-error {
   margin: 0;
-  color: var(--color-danger);
-  font-weight: 700;
   text-align: center;
+  font-weight: 700;
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+}
+
+.loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* --- Inputs: fill-in-the-blank lines ------------------------------------ */
+
+/* 16px or larger, or iOS Safari zooms in when the field is focused. */
+.input {
+  width: 100%;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: var(--line) solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: max(16px, var(--font-size-md));
+  font-weight: 700;
+}
+
+.input::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.input:focus {
+  outline: none;
+  border-bottom-width: var(--line-thick);
+  padding-bottom: 5px;
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+select.input {
+  cursor: pointer;
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+/* Solid ink box with a thin inner line, like an old game menu. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 5px var(--bg);
+  font-family: var(--font-display);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible {
+  outline: none;
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 var(--line) var(--ink), inset 0 0 0 5px var(--bg), inset 0 0 0 7px var(--ink);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Secondary: outline only. */
+.btn--alt {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 var(--line) var(--ink);
+}
+
+.btn--big {
+  padding: 14px 18px;
+  font-size: var(--font-size-lg);
+}
+
+.btn--quiet {
+  background: none;
+  box-shadow: none;
+  color: var(--ink-soft);
+  text-transform: lowercase;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.btn--quiet:hover:not(:disabled),
+.btn--quiet:focus-visible {
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+/* --- Small bits --------------------------------------------------------- */
+
+.tag {
+  flex-shrink: 0;
+  padding: 0 6px;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tag--host {
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .bob {
@@ -150,22 +263,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bob {
+  .bob,
+  .sketchy,
+  .panel::before,
+  .option::before,
+  .player::before,
+  .score::before,
+  .reveal__item::before,
+  .ghost,
+  .logo {
     animation: none;
   }
-}
-
-.loading {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  color: var(--color-text-muted);
-}
-
-.hint {
-  margin: 0;
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
 }
