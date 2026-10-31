@@ -22,6 +22,13 @@ export const text = {
   loading: 'loading',
 
   round: (round: number, total: number) => `round ${round}/${total}`,
+  pickQuestion: 'pick a question',
+  customOption: 'Is there anything you want us to ask?',
+  writeQuestion: 'write a question for the spirit',
+  questionPlaceholder: 'your question',
+  yourQuestion: 'your question',
+  wrote: (done: number, total: number) => `${done}/${total} wrote`,
+  pickWrittenQuestion: 'pick the question to ask',
   answerPlaceholder: 'answer as the spirit',
   submitAnswer: 'submit',
   yourAnswer: 'your answer',

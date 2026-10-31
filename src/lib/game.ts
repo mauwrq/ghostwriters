@@ -1,5 +1,5 @@
 import { child, set, update } from 'firebase/database'
-import { backToLobby, nextPhase, startGame } from '../game/logic'
+import { backToLobby, lockIn, nextPhase, startGame } from '../game/logic'
 import type { Room } from '../game/types'
 import { serverNow } from './firebase'
 import { roomRef } from './rooms'
@@ -15,6 +15,14 @@ export function advancePhase(code: string, room: Room): Promise<void> {
   if (advanced.has(key)) return Promise.resolve()
   advanced.add(key)
   return update(roomRef(code), nextPhase(room, serverNow()))
+}
+
+// Starts the short countdown once everyone has voted on a question.
+export function startLockIn(code: string, room: Room): Promise<void> {
+  const key = `${code}:${room.gameStartedAt}:${room.round}:${room.phase}:lock`
+  if (advanced.has(key)) return Promise.resolve()
+  advanced.add(key)
+  return update(roomRef(code), lockIn(room, serverNow()))
 }
 
 export function hostStartGame(code: string, room: Room): Promise<void> {
@@ -33,4 +41,16 @@ export function submitAnswer(code: string, round: number, playerId: string, answ
 
 export function submitVote(code: string, round: number, playerId: string, targetId: string): Promise<void> {
   return set(child(roomRef(code), `votes/${round}/${playerId}`), targetId)
+}
+
+export function submitPromptVote(code: string, round: number, playerId: string, option: string): Promise<void> {
+  return set(child(roomRef(code), `promptVotes/${round}/${playerId}`), option)
+}
+
+export function submitQuestion(code: string, round: number, playerId: string, question: string): Promise<void> {
+  return set(child(roomRef(code), `questions/${round}/${playerId}`), question)
+}
+
+export function submitQuestionVote(code: string, round: number, playerId: string, authorId: string): Promise<void> {
+  return set(child(roomRef(code), `questionVotes/${round}/${playerId}`), authorId)
 }

@@ -5,6 +5,9 @@ import { advancePhase, hostBackToLobby } from '../../lib/game'
 import { text } from '../../text'
 import { Answering } from './Answering'
 import { GameHeader } from './GameHeader'
+import { PromptVote } from './PromptVote'
+import { QuestionVote } from './QuestionVote'
+import { QuestionWrite } from './QuestionWrite'
 import { Reveal } from './Reveal'
 import { Scoreboard } from './Scoreboard'
 import { Voting } from './Voting'
@@ -28,6 +31,9 @@ export function Game({ code, room, playerId, onLeave }: Props) {
     <div className="game">
       <GameHeader room={room} />
 
+      {room.phase === 'promptVote' && <PromptVote key={phaseKey} code={code} room={room} playerId={playerId} />}
+      {room.phase === 'questionWrite' && <QuestionWrite key={phaseKey} code={code} room={room} playerId={playerId} />}
+      {room.phase === 'questionVote' && <QuestionVote key={phaseKey} code={code} room={room} playerId={playerId} />}
       {room.phase === 'answering' && <Answering key={phaseKey} code={code} room={room} playerId={playerId} />}
       {room.phase === 'voting' && <Voting key={phaseKey} code={code} room={room} playerId={playerId} />}
       {room.phase === 'reveal' && <Reveal room={room} />}
