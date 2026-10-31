@@ -1,4 +1,4 @@
-import { child, get, onDisconnect, ref, remove, runTransaction, set } from 'firebase/database'
+import { child, get, onDisconnect, ref, remove, runTransaction, set, update } from 'firebase/database'
 import { generateRoomCode, isFull, pickLook, sortedPlayers } from '../game/room'
 import { DEFAULT_ROUNDS, type Phase, type Player, type Room } from '../game/types'
 import { db, serverNow } from './firebase'
@@ -51,16 +51,22 @@ export async function joinRoom(code: string, playerId: string, name: string): Pr
   if (!phaseSnap.exists()) throw new RoomError('not-found')
   const phase = phaseSnap.val() as Phase
 
+  // Already in the room (a refresh, or rejoining mid-game): just come back.
+  const playerRef = child(roomRef(code), `players/${playerId}`)
+  const existing = await get(child(playerRef, 'name'))
+  if (existing.exists()) {
+    await update(playerRef, { name, connected: true })
+    return
+  }
+
   // The look and the player count are checked inside a transaction so two
   // people joining at once can't get the same look or overfill the room.
+  // The first run may see an empty local copy instead of the real players;
+  // Firebase then reruns it with the server's data.
   let failure: RoomErrorCode | null = null
   const result = await runTransaction(child(roomRef(code), 'players'), (current: Record<string, Player> | null) => {
     failure = null
     const players = current ?? {}
-    const existing = players[playerId]
-    if (existing?.name) {
-      return { ...players, [playerId]: { ...existing, name, connected: true } }
-    }
     if (phase !== 'lobby') {
       failure = 'in-progress'
       return undefined
