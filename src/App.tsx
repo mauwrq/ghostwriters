@@ -4,6 +4,7 @@ import { useRoom } from './hooks/useRoom'
 import { db } from './lib/firebase'
 import { getPlayerId } from './lib/identity'
 import { leaveRoom, rejoinRoom } from './lib/rooms'
+import { Game } from './screens/game/Game'
 import { Home } from './screens/Home'
 import { Lobby } from './screens/Lobby'
 import { text } from './text'
@@ -47,8 +48,7 @@ function App() {
       if (ok) enterRoom(code)
       setChecking(false)
     })
-    // Only on first load.
-  }, [])
+  }, [checking, playerId])
 
   if (!db) return <p className="loading">{text.errors['not-configured']}</p>
   if (checking) return <p className="loading">{text.loading}</p>
@@ -87,7 +87,8 @@ function RoomView({ code, playerId, onLeave, onRoomGone }: RoomViewProps) {
   }, [room, inRoom, onRoomGone])
 
   if (!room || !inRoom) return <p className="loading">{text.loading}</p>
-  return <Lobby code={code} room={room} playerId={playerId} onLeave={onLeave} />
+  if (room.phase === 'lobby') return <Lobby code={code} room={room} playerId={playerId} onLeave={onLeave} />
+  return <Game code={code} room={room} playerId={playerId} onLeave={onLeave} />
 }
 
 export default App

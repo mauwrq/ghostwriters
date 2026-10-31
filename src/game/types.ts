@@ -1,4 +1,4 @@
-// Shapes of the data stored in Firebase under rooms/{CODE}. See PPSPEC.md.
+// Shapes of the data stored in Firebase under rooms/{CODE}.
 
 export type Phase = 'lobby' | 'answering' | 'voting' | 'reveal' | 'scores' | 'final'
 
@@ -10,9 +10,12 @@ export interface Player {
   joinedAt: number
 }
 
+// Firebase drops empty arrays and objects, so every field can be missing.
 export interface RoundResult {
-  winners: string[]
-  voteCounts: Record<string, number>
+  winners?: string[]
+  voteCounts?: Record<string, number>
+  // Set when too few people answered to hold a vote.
+  skipped?: boolean
 }
 
 export interface Room {
@@ -23,6 +26,10 @@ export interface Room {
   totalRounds: number
   phaseEndsAt: number | null
   prompt: string
+  // When the current game started; tells one game apart from the next.
+  gameStartedAt?: number
+  // Indexes into PROMPTS already used this game, so none repeat.
+  usedPrompts?: number[]
   players?: Record<string, Player>
   answers?: Record<number, Record<string, string>>
   votes?: Record<number, Record<string, string>>

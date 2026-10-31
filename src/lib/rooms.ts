@@ -18,7 +18,7 @@ function database() {
   return db
 }
 
-function roomRef(code: string) {
+export function roomRef(code: string) {
   return ref(database(), `rooms/${code}`)
 }
 

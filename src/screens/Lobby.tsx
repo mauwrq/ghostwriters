@@ -3,6 +3,7 @@ import { Ghost } from '../components/Ghost'
 import { Logo } from '../components/Logo'
 import { canStart, sortedPlayers } from '../game/room'
 import { MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS, type Room } from '../game/types'
+import { hostStartGame } from '../lib/game'
 import { setTotalRounds } from '../lib/rooms'
 import { text } from '../text'
 import './Lobby.css'
@@ -69,8 +70,12 @@ export function Lobby({ code, room, playerId, onLeave }: Props) {
 
           {isHost ? (
             <>
-              {/* Starting the game comes with the game loop. */}
-              <button className="btn btn--go btn--big" type="button" disabled={!ready}>
+              <button
+                className="btn btn--go btn--big"
+                type="button"
+                disabled={!ready}
+                onClick={() => void hostStartGame(code, room)}
+              >
                 {text.start}
               </button>
               {!ready && <p className="hint">{text.needPlayers(MIN_PLAYERS)}</p>}
