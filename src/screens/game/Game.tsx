@@ -1,7 +1,6 @@
 import { finalWinners, roundPoints, roundResult } from '../../game/logic'
 import type { Room } from '../../game/types'
 import { useHostLoop } from '../../hooks/useHostLoop'
-import { useTheme } from '../../hooks/useTheme'
 import { advancePhase, hostBackToLobby } from '../../lib/game'
 import { text } from '../../text'
 import { Answering } from './Answering'
@@ -24,13 +23,12 @@ interface Props {
 export function Game({ code, room, playerId, onLeave }: Props) {
   const isHost = room.hostId === playerId
   useHostLoop(code, room, isHost)
-  useTheme('void')
 
   // Keyed by round and phase so typed-in state resets every phase.
   const phaseKey = `${room.gameStartedAt}:${room.round}:${room.phase}`
 
   return (
-    <div className="game">
+    <div className={room.phase === 'reveal' ? 'game game--wide' : 'game'}>
       <GameHeader room={room} />
 
       {room.phase === 'promptVote' && <PromptVote key={phaseKey} code={code} room={room} playerId={playerId} />}

@@ -7,7 +7,7 @@ export function GameHeader({ room }: { room: Room }) {
   const showPrompt = room.phase === 'answering' || room.phase === 'voting' || room.phase === 'reveal'
 
   return (
-    <header className="game-header">
+    <header className="panel game-header">
       <div className="game-header__bar">
         <span className="label">{text.round(room.round, room.totalRounds)}</span>
         {secondsLeft !== null && (

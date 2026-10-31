@@ -1,0 +1,10 @@
+.board {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.planchette__shadow {
+  fill: #000;
+}

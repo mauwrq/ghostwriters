@@ -1,20 +1,23 @@
 /*
  * Design tokens. Every color, font, and spacing value in the app should come
- * from here.
- *
- * Two themes: "paper" (black ink on white, for the menus and lobby) and
- * "void" (white chalk on black, once the game starts). Components only use
- * --bg and --ink, so they work in both.
+ * from here. The page is black ink on white paper; text boxes (.panel) are
+ * white on black.
  */
 :root {
-  --bg: #f7f6f2;
-  --ink: #141414;
+  /* Pure white, so the board photo's white edges blend into the page. */
+  --bg: #fff;
+  --ink: #000;
   --ink-soft: #77756f;
   --ink-faint: rgb(0 0 0 / 0.06);
   /* Swapped values for filled-in areas (a chosen option, the winner). */
-  --inv-bg: #141414;
-  --inv-ink: #f7f6f2;
+  --inv-bg: #000;
+  --inv-ink: #fff;
   --inv-ink-soft: #a9a7a0;
+
+  /* RPG text boxes: always white on black. */
+  --box-bg: #000;
+  --box-ink: #fff;
+  --box-ink-soft: #9a9a9a;
 
   /* Type */
   --font-display: "Gaegu", "Comic Sans MS", cursive;
@@ -36,17 +39,5 @@
   --space-5: 40px;
   --radius: 3px;
   --radius-sm: 2px;
-
-  /* How long the paper-to-void switch takes */
-  --theme-fade: 0.9s;
 }
 
-:root[data-theme="void"] {
-  --bg: #070707;
-  --ink: #efeee9;
-  --ink-soft: #8a8984;
-  --ink-faint: rgb(255 255 255 / 0.08);
-  --inv-bg: #efeee9;
-  --inv-ink: #070707;
-  --inv-ink-soft: #5b5a55;
-}
