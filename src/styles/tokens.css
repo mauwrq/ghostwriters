@@ -1,0 +1,44 @@
+/*
+ * Design tokens. Every color, font, and spacing value in the app should come
+ * from here, so the Day 4 design pass is mostly editing this one file.
+ */
+:root {
+  /* Haunted parlor palette */
+  --color-bg: #1b1220;          /* dark plum wallpaper */
+  --color-surface: #2a1d31;     /* panels and cards */
+  --color-board: #c9a46a;       /* Ouija board wood */
+  --color-board-ink: #3a2414;   /* letters burned into the board */
+  --color-text: #f3e9d2;        /* candlelit parchment */
+  --color-text-muted: #b8a88c;
+  --color-accent: #ff8a3d;      /* pumpkin orange */
+  --color-accent-ink: #1b1220;  /* text on accent buttons */
+  --color-ghost: #b9f3e4;       /* spectral glow */
+  --color-danger: #ff5c7a;
+
+  /* Player colors, assigned on join (max 8 players) */
+  --player-1: #ff8a3d;
+  --player-2: #7ee081;
+  --player-3: #6ec3ff;
+  --player-4: #ff6fb5;
+  --player-5: #ffd84d;
+  --player-6: #b98cff;
+  --player-7: #4ff0d2;
+  --player-8: #ff6b6b;
+
+  /* Type */
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.5rem;
+  --font-size-xl: 2.5rem;
+
+  /* Spacing and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --radius: 12px;
+  --shadow: 0 6px 24px rgb(0 0 0 / 0.4);
+}
