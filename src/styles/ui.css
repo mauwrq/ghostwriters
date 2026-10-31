@@ -1,0 +1,164 @@
+/* Shared building blocks used across screens. */
+
+.logo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 13vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-shadow:
+    -3px 0 var(--color-outline),
+    3px 0 var(--color-outline),
+    0 -3px var(--color-outline),
+    0 3px var(--color-outline),
+    3px 6px 0 var(--color-outline);
+}
+
+.logo--small {
+  font-size: clamp(2rem, 9vw, 3rem);
+}
+
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  box-shadow: var(--shadow);
+}
+
+.panel__title {
+  font-size: var(--font-size-md);
+  margin: 0 0 var(--space-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* 16px or larger, or iOS Safari zooms in when the field is focused. */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-input);
+  color: var(--color-input-ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.input:disabled {
+  opacity: 0.7;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 0 rgb(0 0 0 / 0.25);
+  cursor: pointer;
+  transition: filter 0.1s, transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--go {
+  background: var(--color-go);
+}
+
+.btn--alt {
+  background: var(--color-alt);
+}
+
+.btn--big {
+  font-size: var(--font-size-lg);
+  padding: 14px 16px;
+}
+
+.btn--quiet {
+  background: transparent;
+  color: var(--color-text-muted);
+  text-shadow: none;
+  font-weight: 700;
+}
+
+.tag {
+  flex-shrink: 0;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tag--host {
+  color: var(--color-accent);
+}
+
+.form-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-weight: 700;
+  text-align: center;
+}
+
+.bob {
+  display: inline-block;
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bob {
+    animation: none;
+  }
+}
+
+.loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--color-text-muted);
+}

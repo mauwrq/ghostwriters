@@ -1,0 +1,47 @@
+.home {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-3);
+}
+
+.home__ghosts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.home__panel {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.home__join {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.home__code {
+  flex: 0 0 8.5em;
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+
+.home__code::placeholder {
+  letter-spacing: normal;
+}
+
+.home__join .btn {
+  flex: 1;
+}
+
+.home .btn {
+  font-size: var(--font-size-lg);
+}

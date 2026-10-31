@@ -14,6 +14,12 @@
   --color-accent-ink: #1b1220;  /* text on accent buttons */
   --color-ghost: #b9f3e4;       /* spectral glow */
   --color-danger: #ff5c7a;
+  --color-surface-raised: rgb(255 255 255 / 0.06);
+  --color-outline: #120c16;     /* outlines on the logo and avatars */
+  --color-input: #f3e9d2;
+  --color-input-ink: #1b1220;
+  --color-go: #4fc23a;          /* main action buttons */
+  --color-alt: #3a86e0;         /* secondary buttons */
 
   /* Player colors, assigned on join (max 8 players) */
   --player-1: #ff8a3d;
@@ -26,8 +32,8 @@
   --player-8: #ff6b6b;
 
   /* Type */
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.5rem;
@@ -40,5 +46,6 @@
   --space-4: 24px;
   --space-5: 40px;
   --radius: 12px;
+  --radius-sm: 8px;
   --shadow: 0 6px 24px rgb(0 0 0 / 0.4);
 }

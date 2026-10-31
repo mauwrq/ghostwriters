@@ -33,3 +33,5 @@ export const MIN_PLAYERS = 3
 export const MAX_PLAYERS = 8
 export const MAX_NAME_LENGTH = 16
 export const MAX_ANSWER_LENGTH = 40
+export const DEFAULT_ROUNDS = 4
+export const ROUND_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
