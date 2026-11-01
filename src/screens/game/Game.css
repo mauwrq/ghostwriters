@@ -50,6 +50,7 @@
   margin: 0;
   padding: var(--space-3) var(--space-4);
   font-size: clamp(1.4rem, 5.5vw, 2rem);
+  font-weight: 400;
   text-align: center;
 }
 
@@ -409,7 +410,7 @@
   min-height: 1.1em;
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 400;
   font-size: clamp(1.6rem, 6.5vw, 2.5rem);
   line-height: 1.1;
   text-transform: uppercase;
