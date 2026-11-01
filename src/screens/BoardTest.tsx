@@ -18,23 +18,25 @@ export function BoardTest() {
   return (
     <div className="game game--wide">
       <form
-        className="answer-form"
+        className="panel entry"
         onSubmit={(e) => {
           e.preventDefault()
           setTexts(draft.split('|').map((t) => t.trim().slice(0, MAX_ANSWER_LENGTH)))
           setStartAt(serverNow())
         }}
       >
-        <input
-          className="input"
-          placeholder={text.boardTestPlaceholder}
-          aria-label={text.boardTestPlaceholder}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-        />
-        <button className="btn" type="submit">
-          {text.boardTestSpell}
-        </button>
+        <div className="entry__row">
+          <input
+            className="input entry__input"
+            placeholder={text.boardTestPlaceholder}
+            aria-label={text.boardTestPlaceholder}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+          <button className="btn" type="submit">
+            {text.boardTestSpell}
+          </button>
+        </div>
       </form>
 
       <OuijaBoard x={planchette.x} y={planchette.y} />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isValidRoomCode, normalizeRoomCode } from './game/room'
+import { FADE_OUT_MS, usePhaseFade } from './hooks/usePhaseFade'
 import { useRoom } from './hooks/useRoom'
 import { db } from './lib/firebase'
 import { getPlayerId } from './lib/identity'
@@ -50,45 +51,68 @@ function App() {
     })
   }, [checking, playerId])
 
+  // Home and a room fade into each other, like the screens inside a game.
+  const { shownKey, leaving } = usePhaseFade(roomCode ? `room:${roomCode}` : 'home', null)
+  const shownCode = shownKey.startsWith('room:') ? shownKey.slice('room:'.length) : null
+
   if (!db) return <p className="loading">{text.errors['not-configured']}</p>
   if (checking) return <p className="loading">{text.loading}</p>
 
-  if (!roomCode) {
-    return <Home initialCode={readRoomFromUrl()} initialError={notice} onEnterRoom={enterRoom} />
-  }
-
   return (
-    <RoomView
-      key={roomCode}
-      code={roomCode}
-      playerId={playerId}
-      onLeave={() => {
-        exitRoom(null)
-        void leaveRoom(roomCode, playerId)
-      }}
-      onRoomGone={() => exitRoom(text.errors.roomClosed)}
-    />
+    <div key={shownKey} className={leaving ? 'screen screen--leaving' : 'screen'}>
+      {shownCode ? (
+        <RoomView
+          code={shownCode}
+          playerId={playerId}
+          leaving={leaving}
+          onLeave={() => {
+            exitRoom(null)
+            // Stay in the room until the fade-out finishes, so the room
+            // doesn't see us gone while we're still on screen.
+            setTimeout(() => void leaveRoom(shownCode, playerId), FADE_OUT_MS)
+          }}
+          onRoomGone={() => exitRoom(text.errors.roomClosed)}
+        />
+      ) : (
+        <Home initialCode={readRoomFromUrl()} initialError={notice} onEnterRoom={enterRoom} />
+      )}
+    </div>
   )
 }
 
 interface RoomViewProps {
   code: string
   playerId: string
+  // True while this room is fading out after we left it.
+  leaving: boolean
   onLeave: () => void
   onRoomGone: () => void
 }
 
-function RoomView({ code, playerId, onLeave, onRoomGone }: RoomViewProps) {
-  const room = useRoom(code, playerId)
-  const inRoom = Boolean(room?.players?.[playerId]?.name)
+function RoomView({ code, playerId, leaving, onLeave, onRoomGone }: RoomViewProps) {
+  const liveRoom = useRoom(code, playerId)
+  const inRoom = Boolean(liveRoom?.players?.[playerId]?.name)
 
   useEffect(() => {
-    if (room === null || (room && !inRoom)) onRoomGone()
-  }, [room, inRoom, onRoomGone])
+    if (leaving) return
+    if (liveRoom === null || (liveRoom && !inRoom)) onRoomGone()
+  }, [liveRoom, inRoom, leaving, onRoomGone])
 
-  if (!room || !inRoom) return <p className="loading">{text.loading}</p>
-  if (room.phase === 'lobby') return <Lobby code={code} room={room} playerId={playerId} onLeave={onLeave} />
-  return <Game code={code} room={room} playerId={playerId} onLeave={onLeave} />
+  // The lobby and the game fade into each other too.
+  const stage = liveRoom?.phase === 'lobby' ? 'lobby' : 'game'
+  const { shownKey, shownValue: room, leaving: switching } = usePhaseFade(stage, liveRoom)
+
+  // Blank while the room loads; the lobby or game then fades in.
+  if (!room || !inRoom) return null
+  return (
+    <div key={shownKey} className={switching ? 'screen screen--leaving' : 'screen'}>
+      {shownKey === 'lobby' ? (
+        <Lobby code={code} room={room} playerId={playerId} onLeave={onLeave} />
+      ) : (
+        <Game code={code} room={room} playerId={playerId} onLeave={onLeave} />
+      )}
+    </div>
+  )
 }
 
 export default App

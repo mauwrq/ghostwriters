@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { REST, SPOT_BY_KEY } from './board'
-import { AUTHOR_MS, HOLD_MS, INTRO_MS, MOVE_MS, planchetteAt, revealMs, spellMs, spellSteps } from './spelling'
+import {
+  ANSWER_HOLD_MS,
+  HOLD_MS,
+  INTRO_MS,
+  MOVE_MS,
+  planchetteAt,
+  PROMPT_CHAR_MS,
+  PROMPT_FADE_MS,
+  promptIntroMs,
+  revealMs,
+  spellMs,
+  spellSteps,
+  typedChars,
+} from './spelling'
 
 describe('spellSteps', () => {
   it('spells letters and digits, pausing on spaces', () => {
@@ -52,10 +65,10 @@ describe('planchetteAt', () => {
     expect(onB).toMatchObject({ lit: 'B', shown: 2 })
   })
 
-  it('shows the author, then the next tied answer, then finishes', () => {
+  it('pauses after each answer, then spells the next, then finishes', () => {
     const first = spellMs('a')
-    expect(planchetteAt(['a', 'b'], first + 10)).toMatchObject({ index: 0, stage: 'author' })
-    expect(planchetteAt(['a', 'b'], first + AUTHOR_MS + 10)).toMatchObject({ index: 1, stage: 'spelling' })
+    expect(planchetteAt(['a', 'b'], first + 10)).toMatchObject({ index: 0, stage: 'pause' })
+    expect(planchetteAt(['a', 'b'], first + ANSWER_HOLD_MS + 10)).toMatchObject({ index: 1, stage: 'spelling' })
     expect(planchetteAt(['a', 'b'], revealMs(['a', 'b']) + 10)).toMatchObject({ index: 1, stage: 'done' })
   })
 })
@@ -65,8 +78,8 @@ describe('word timing', () => {
     expect(spellMs('yes')).toBeGreaterThan(spellMs('y'))
   })
 
-  it('keeps the last letter lit while showing the author', () => {
-    expect(planchetteAt(['ab'], spellMs('ab') + 10)).toMatchObject({ stage: 'author', lit: 'B' })
+  it('keeps the last letter lit during the pause', () => {
+    expect(planchetteAt(['ab'], spellMs('ab') + 10)).toMatchObject({ stage: 'pause', lit: 'B' })
   })
 })
 
@@ -78,5 +91,13 @@ describe('sliding', () => {
     // Halfway through the A to B slide, it sits on the line between them.
     const cross = (b.x - a.x) * (mid.y - a.y) - (b.y - a.y) * (mid.x - a.x)
     expect(Math.abs(cross)).toBeLessThan(1e-6)
+  })
+})
+
+describe('question intro', () => {
+  it('types the question out after the board fades in', () => {
+    expect(typedChars('Spirit?', 0)).toBe(0)
+    expect(typedChars('Spirit?', PROMPT_FADE_MS + PROMPT_CHAR_MS * 3)).toBe(3)
+    expect(typedChars('Spirit?', promptIntroMs('Spirit?'))).toBe(7)
   })
 })

@@ -15,7 +15,7 @@ export function PlayerProgress({ room, doneIds, label }: { room: Room; doneIds: 
           </span>
         ))}
       </div>
-      <span className="label">{label}</span>
+      <span className="label label--ink">{label}</span>
     </div>
   )
 }

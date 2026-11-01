@@ -27,7 +27,7 @@ export function ChoiceBoard({ room, choices, votes, playerId, onVote }: Props) {
     <ul className="options">
       {choices.map((choice) => {
         const voters = players.filter(([id]) => votes[id] === choice.key)
-        const classes = ['option']
+        const classes = ['panel', 'option']
         if (votes[playerId] === choice.key) classes.push('option--chosen')
         if (choice.special) classes.push('option--special')
         return (

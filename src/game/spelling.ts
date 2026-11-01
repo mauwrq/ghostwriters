@@ -8,7 +8,22 @@ export const MOVE_MS = 420 // gliding from one spot to the next
 export const HOLD_MS = 280 // resting on a letter
 export const WORD_HOLD_MS = 1400 // resting on YES, NO or GOOD BYE
 export const PAUSE_MS = 250 // extra rest in the middle for a space
-export const AUTHOR_MS = 3200 // showing who wrote it, after spelling
+export const ANSWER_HOLD_MS = 2200 // the finished answer stays up before the next one
+
+// Before the planchette moves, the question asked of the spirit types itself
+// out under the board, like a line of game dialogue.
+export const PROMPT_FADE_MS = 1600 // the board fades in first
+export const PROMPT_CHAR_MS = 55 // one letter of the question appearing
+export const PROMPT_HOLD_MS = 900 // a beat after the question, before the answer
+
+export function promptIntroMs(prompt: string): number {
+  return PROMPT_FADE_MS + prompt.length * PROMPT_CHAR_MS + PROMPT_HOLD_MS
+}
+
+// How many characters of the question are typed out, elapsed ms into the reveal.
+export function typedChars(prompt: string, elapsed: number): number {
+  return Math.min(prompt.length, Math.max(0, Math.floor((elapsed - PROMPT_FADE_MS) / PROMPT_CHAR_MS)))
+}
 
 export interface Step {
   // A board key, or null to slide back to the middle (a space).
@@ -59,15 +74,15 @@ export function spellMs(text: string): number {
   return INTRO_MS + spellSteps(text).reduce((sum, step) => sum + stepMs(step), 0)
 }
 
-// Total time to spell every answer in turn, each followed by its author.
+// Total time to spell every answer in turn, with a pause after each.
 export function revealMs(texts: string[]): number {
-  return texts.reduce((sum, text) => sum + spellMs(text) + AUTHOR_MS, 0)
+  return texts.reduce((sum, text) => sum + spellMs(text) + ANSWER_HOLD_MS, 0)
 }
 
 export interface PlanchetteState {
   // Which answer is being revealed (they're spelled one after another).
   index: number
-  stage: 'spelling' | 'author' | 'done'
+  stage: 'spelling' | 'pause' | 'done'
   x: number
   y: number
   // How many characters of the current answer to show.
@@ -126,9 +141,9 @@ export function planchetteAt(texts: string[], elapsed: number): PlanchetteState 
     const lastKey = steps.length > 0 ? steps[steps.length - 1].key : null
     last = lastKey ? spotFor(lastKey) : last
 
-    // The planchette stays on the last letter while the author is shown.
-    if (t < AUTHOR_MS) return { index, stage: 'author', ...last, shown: text.length, lit: lastKey }
-    t -= AUTHOR_MS
+    // The planchette rests on the last letter before moving on.
+    if (t < ANSWER_HOLD_MS) return { index, stage: 'pause', ...last, shown: text.length, lit: lastKey }
+    t -= ANSWER_HOLD_MS
   }
 
   const index = Math.max(0, texts.length - 1)

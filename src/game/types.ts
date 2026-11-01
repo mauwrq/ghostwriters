@@ -6,6 +6,7 @@ export type Phase =
   | 'questionWrite' // the custom option won: everyone writes a question
   | 'questionVote' // pick which written question to ask
   | 'answering'
+  | 'seance' // the board spells out every answer, anonymously
   | 'voting'
   | 'reveal'
   | 'scores'

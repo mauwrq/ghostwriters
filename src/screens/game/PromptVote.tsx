@@ -15,8 +15,8 @@ export function PromptVote({ code, room, playerId }: { code: string; room: Room;
   const connected = connectedPlayerIds(room)
 
   return (
-    <section className="panel game-body">
-      <span className="label">{text.pickQuestion}</span>
+    <section className="game-body">
+      <span className="label label--ink">{text.pickQuestion}</span>
       <ChoiceBoard
         room={room}
         choices={choices}

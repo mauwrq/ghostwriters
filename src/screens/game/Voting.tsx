@@ -1,12 +1,12 @@
-import { connectedPlayerIds, roundAnswers, roundVotes, seededShuffle } from '../../game/logic'
+import { answerOrder, connectedPlayerIds, roundVotes } from '../../game/logic'
 import type { Room } from '../../game/types'
 import { submitVote } from '../../lib/game'
 import { text } from '../../text'
 import { PlayerProgress } from './PlayerProgress'
 
 export function Voting({ code, room, playerId }: { code: string; room: Room; playerId: string }) {
-  // Answers are anonymous here; only the reveal says who wrote what.
-  const options = seededShuffle(Object.entries(roundAnswers(room)), `${code}:${room.gameStartedAt}:${room.round}`)
+  // Anonymous, and in the order the board spelled them; the results say who wrote what.
+  const options = answerOrder(room)
   const votes = roundVotes(room)
   const myVote = votes[playerId]
   const votedIds = Object.keys(votes)
@@ -14,8 +14,8 @@ export function Voting({ code, room, playerId }: { code: string; room: Room; pla
   const doneCount = connected.filter((id) => votedIds.includes(id)).length
 
   return (
-    <section className="panel game-body">
-      <span className="label">{myVote ? text.youVoted : text.pickFavorite}</span>
+    <section className="game-body">
+      <span className="label label--ink">{myVote ? text.youVoted : text.pickFavorite}</span>
       <ul className="options">
         {options.map(([authorId, answer]) => {
           const mine = authorId === playerId
@@ -24,7 +24,7 @@ export function Voting({ code, room, playerId }: { code: string; room: Room; pla
             <li key={authorId}>
               <button
                 type="button"
-                className={chosen ? 'option option--chosen' : 'option'}
+                className={chosen ? 'panel option option--chosen' : 'panel option'}
                 disabled={mine}
                 onClick={() => void submitVote(code, room.round, playerId, authorId)}
               >

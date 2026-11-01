@@ -1,26 +1,56 @@
 .game {
   min-height: 100dvh;
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   padding: var(--space-3);
-  animation: game-in 0.5s ease both;
 }
 
-@keyframes game-in {
+/* Each screen fades in, and fades out before the next one (FADE_OUT_MS). */
+.scene {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: scene-in 0.9s ease both;
+}
+
+.scene--leaving {
+  animation: scene-out 0.8s ease forwards;
+}
+
+@keyframes scene-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The séance fades in slowly before the question starts typing (PROMPT_FADE_MS). */
+.scene--seance:not(.scene--leaving) {
+  animation-duration: 1.6s;
+}
+
+@keyframes scene-in {
   from {
     opacity: 0;
   }
 }
 
-.game-header__bar {
+/* The séance: spirit's box, board, then the question typing out below. */
+.seance {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 2.5rem;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.seance__prompt {
+  min-height: 4.5rem;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: clamp(1.4rem, 5.5vw, 2rem);
+  text-align: center;
 }
 
 .timer {
@@ -47,31 +77,47 @@
 }
 
 .game-header {
-  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
 }
 
-.game-header__prompt {
-  margin: var(--space-2) 0 var(--space-1);
-  font-size: clamp(1.6rem, 6.5vw, 2.25rem);
+/* The question we asked the spirit, below the board. */
+.game-prompt {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: clamp(1.5rem, 6vw, 2.1rem);
   text-align: center;
 }
 
 .game-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
-/* Answering and writing */
+/* Answering and writing: a field with the submit button beside it. */
 
-.answer-form {
+.entry {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-3);
 }
 
-.answer-form__count {
-  align-self: flex-end;
+.entry__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.entry__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry__count {
   font-size: var(--font-size-sm);
   color: var(--ink-soft);
 }
@@ -80,8 +126,7 @@
   text-align: center;
 }
 
-.submitted__answer,
-.reveal__answer {
+.submitted__answer {
   margin: var(--space-1) 0 0;
   font-family: var(--font-display);
   font-weight: 700;
@@ -115,14 +160,14 @@
 
 /* Boards: question picks and answer votes */
 
-/* An RPG choice menu: plain lines of text with a cursor beside the pick. */
+/* Each choice is its own black box, with a cursor beside your pick. */
 .options {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .option {
@@ -131,9 +176,9 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-2) var(--space-2) 34px;
+  padding: var(--space-3) var(--space-3) var(--space-3) 40px;
   border: 0;
-  background: transparent;
+  background: var(--bg);
   color: var(--ink);
   font-size: var(--font-size-md);
   font-weight: 700;
@@ -147,7 +192,7 @@
 .option::before {
   content: "";
   position: absolute;
-  left: 8px;
+  left: 14px;
   top: 50%;
   border-left: 13px solid var(--ink);
   border-top: 8px solid transparent;
@@ -204,27 +249,40 @@
   max-width: 50%;
 }
 
-/* Reveal */
+/* Results, after the vote */
 
-.reveal__winner {
+.results__winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.results__winning-answer {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  text-align: center;
 }
 
-.reveal__answer {
-  font-size: var(--font-size-xl);
-  line-height: 1.05;
-}
-
-.reveal__empty {
+.results__answer,
+.results__message {
   margin: 0;
-  text-align: center;
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--font-size-lg);
+  font-size: clamp(1.75rem, 7vw, 2.75rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
+
+.results__message {
+  font-size: var(--font-size-lg);
+  text-transform: none;
+}
+
+/* Answer lists */
 
 .author {
   display: inline-flex;
@@ -242,14 +300,7 @@
   color: var(--ink-soft);
 }
 
-.reveal__others,
-.reveal__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.reveal__dialogue {
+.reveal__others {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -326,14 +377,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Ouija board reveal */
+/* Board test page (?board) */
 
 .game--wide {
   max-width: 920px;
-}
-
-.reveal {
-  align-items: stretch;
 }
 
 .reveal__spelled {
@@ -343,12 +390,34 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(1.75rem, 7vw, 3rem);
+  text-transform: uppercase;
+}
+
+/* The spirit's dialogue box, at the top like an NPC talking. */
+
+/* Starts blank and fills in as the planchette spells. Sized for two lines,
+   so it doesn't grow mid-answer. */
+.dialogue {
+  min-height: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.dialogue__text {
+  min-height: 1.1em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 6.5vw, 2.5rem);
   line-height: 1.1;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   overflow-wrap: anywhere;
 }
 
+.dialogue__cursor,
 .reveal__cursor {
   display: inline-block;
   width: 0.08em;
@@ -363,31 +432,4 @@
   50% {
     opacity: 0;
   }
-}
-
-.reveal__author {
-  min-height: 3rem;
-  display: flex;
-  justify-content: center;
-}
-
-.reveal__author--shown {
-  animation: author-in 0.6s ease both;
-}
-
-@keyframes author-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-/* Inside the dialogue box, the spirit's words read left to right like RPG text. */
-.reveal__dialogue .reveal__spelled {
-  text-align: left;
-}
-
-.reveal__dialogue .reveal__author {
-  min-height: 2.5rem;
-  justify-content: flex-start;
 }

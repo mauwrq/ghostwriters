@@ -13,8 +13,8 @@ export function QuestionVote({ code, room, playerId }: { code: string; room: Roo
   const connected = connectedPlayerIds(room)
 
   return (
-    <section className="panel game-body">
-      <span className="label">{text.pickWrittenQuestion}</span>
+    <section className="game-body">
+      <span className="label label--ink">{text.pickWrittenQuestion}</span>
       <ChoiceBoard
         room={room}
         choices={choices}

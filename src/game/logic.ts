@@ -2,7 +2,7 @@
 // happens next, then writes the returned updates to Firebase.
 import { PROMPTS } from './prompts'
 import { sortedPlayers } from './room'
-import { revealMs } from './spelling'
+import { promptIntroMs, revealMs } from './spelling'
 import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH, type Phase, type Room, type RoundResult } from './types'
 
 export const PROMPT_VOTE_MS = 20_000
@@ -12,10 +12,10 @@ export const QUESTION_VOTE_MS = 20_000
 export const LOCK_IN_MS = 3_000
 export const ANSWER_MS = 60_000
 export const VOTE_MS = 30_000
-// Reveal when there's nothing to spell (no vote held, or no votes cast).
-export const REVEAL_MS = 6_000
-// After the planchette finishes, time to look over everyone's answers.
-export const REVEAL_TAIL_MS = 5_000
+// After the board has spelled the last answer, a moment before voting starts.
+export const SEANCE_TAIL_MS = 1_500
+// The results screen after voting: the winner and who wrote what.
+export const RESULTS_MS = 10_000
 export const SCORES_MS = 8_000
 
 export const PROMPT_OPTION_COUNT = 3
@@ -96,11 +96,16 @@ function pickRandom<T>(items: T[], random: Random): T {
   return items[Math.floor(random() * items.length)]
 }
 
-// How long the reveal lasts: the planchette spells each winning answer, then
-// everyone gets a moment to read the rest.
-export function revealPhaseMs(answers: Answers, winners: string[]): number {
-  if (winners.length === 0) return REVEAL_MS
-  return revealMs(winners.map((id) => answers[id] ?? '')) + REVEAL_TAIL_MS
+// The order answers are spelled out on the board, and listed for the vote.
+// The same on every device.
+export function answerOrder(room: Room): [string, string][] {
+  return seededShuffle(Object.entries(roundAnswers(room)), `${room.gameStartedAt}:${room.round}`)
+}
+
+// How long the séance lasts: the question types itself out, then the
+// planchette spells every answer in turn.
+export function seancePhaseMs(prompt: string, texts: string[]): number {
+  return promptIntroMs(prompt) + revealMs(texts) + SEANCE_TAIL_MS
 }
 
 export function roundPoints(result: RoundResult): Record<string, number> {
@@ -253,15 +258,18 @@ export function nextPhase(room: Room, now: number, random: Random = Math.random)
     }
     case 'answering': {
       if (Object.keys(roundAnswers(room)).length < MIN_ANSWERS_TO_VOTE) {
-        return { phase: 'reveal', phaseEndsAt: now + REVEAL_MS, [`results/${room.round}`]: { skipped: true } }
+        return { phase: 'reveal', phaseEndsAt: now + RESULTS_MS, [`results/${room.round}`]: { skipped: true } }
       }
-      return { phase: 'voting', phaseEndsAt: now + VOTE_MS }
+      const texts = answerOrder(room).map(([, answer]) => answer)
+      return { phase: 'seance', phaseEndsAt: now + seancePhaseMs(room.prompt, texts) }
     }
+    case 'seance':
+      return { phase: 'voting', phaseEndsAt: now + VOTE_MS }
     case 'voting': {
       const result = tallyVotes(roundAnswers(room), roundVotes(room))
       const updates: Updates = {
         phase: 'reveal',
-        phaseEndsAt: now + revealPhaseMs(roundAnswers(room), result.winners),
+        phaseEndsAt: now + RESULTS_MS,
         [`results/${room.round}`]: result,
       }
       for (const [id, points] of Object.entries(roundPoints(result))) {

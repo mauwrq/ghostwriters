@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  answerOrder,
   ANSWER_MS,
   backToLobby,
   CUSTOM_OPTION,
@@ -9,6 +10,8 @@ import {
   pickMostVoted,
   pickPromptOptions,
   PROMPT_VOTE_MS,
+  RESULTS_MS,
+  seancePhaseMs,
   QUESTION_WRITE_MS,
   finalWinners,
   isPhaseComplete,
@@ -173,14 +176,26 @@ describe('game flow', () => {
     expect(lockIn(room({ phaseEndsAt: 11_000 }), 10_000).phaseEndsAt).toBe(11_000)
   })
 
-  it('moves to voting when enough people answered', () => {
-    const updates = nextPhase(room({ answers: { 1: { a: 'x', b: 'y' } } }), 1000)
-    expect(updates).toEqual({ phase: 'voting', phaseEndsAt: 1000 + VOTE_MS })
+  it('holds a séance to spell out the answers when enough people answered', () => {
+    const r = room({ prompt: 'Spirit?', answers: { 1: { a: 'x', b: 'y' } } })
+    const texts = answerOrder(r).map(([, answer]) => answer)
+    expect(nextPhase(r, 1000)).toEqual({ phase: 'seance', phaseEndsAt: 1000 + seancePhaseMs('Spirit?', texts) })
   })
 
-  it('skips voting with fewer than 2 answers', () => {
+  it('spells every answer, in the same order the vote lists them', () => {
+    const r = room({ gameStartedAt: 5, answers: { 1: { a: 'one', b: 'two', c: 'three' } } })
+    expect(answerOrder(r).map(([, answer]) => answer).sort()).toEqual(['one', 'three', 'two'])
+    expect(answerOrder(r)).toEqual(answerOrder({ ...r }))
+  })
+
+  it('moves to voting after the séance', () => {
+    expect(nextPhase(room({ phase: 'seance' }), 1000)).toEqual({ phase: 'voting', phaseEndsAt: 1000 + VOTE_MS })
+  })
+
+  it('skips the séance and voting with fewer than 2 answers', () => {
     const updates = nextPhase(room({ answers: { 1: { a: 'x' } } }), 1000)
     expect(updates.phase).toBe('reveal')
+    expect(updates.phaseEndsAt).toBe(1000 + RESULTS_MS)
     expect(updates['results/1']).toEqual({ skipped: true })
   })
 
