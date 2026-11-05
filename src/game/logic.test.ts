@@ -3,7 +3,6 @@ import {
   answerOrder,
   ANSWER_MS,
   backToLobby,
-  CUSTOM_OPTION,
   hasLockIn,
   lockIn,
   LOCK_IN_MS,
@@ -12,9 +11,9 @@ import {
   PROMPT_VOTE_MS,
   RESULTS_MS,
   seancePhaseMs,
-  QUESTION_WRITE_MS,
   finalWinners,
   isPhaseComplete,
+  newestQuestions,
   nextPhase,
   roundPoints,
   seededShuffle,
@@ -84,7 +83,7 @@ describe('pickPromptOptions', () => {
 
 describe('pickMostVoted', () => {
   it('picks the most voted option', () => {
-    expect(pickMostVoted(['0', '1', CUSTOM_OPTION], { a: '1', b: '1', c: CUSTOM_OPTION })).toBe('1')
+    expect(pickMostVoted(['0', '1', 'author'], { a: '1', b: '1', c: 'author' })).toBe('1')
   })
 
   it('breaks ties at random', () => {
@@ -138,8 +137,13 @@ describe('game flow', () => {
     const rooms = [
       room({ phase: 'lobby', round: 0 }),
       room({ phase: 'promptVote', round: 2, promptOptions: [0, 1, 2], promptVotes: { 2: { a: '1' } } }),
-      room({ phase: 'questionWrite', round: 2, questions: { 2: { a: 'q1', b: 'q2' } } }),
-      room({ phase: 'questionVote', round: 2, questions: { 2: { a: 'q1', b: 'q2' } } }),
+      room({
+        phase: 'promptVote',
+        round: 2,
+        promptOptions: [0],
+        questions: { 2: { a: { text: 'q1', at: 1 } } },
+        promptVotes: { 2: { b: 'a' } },
+      }),
       room({ phase: 'answering', answers: { 1: { a: 'x', b: 'y' } } }),
       room({ phase: 'voting', answers: { 1: { a: 'x', b: 'y' } }, votes: { 1: { a: 'b', b: 'a' } } }),
       room({ phase: 'scores', round: 1 }),
@@ -148,7 +152,7 @@ describe('game flow', () => {
     ]
     expect(clash(startGame(rooms[0], 0))).toEqual([])
     for (const r of rooms) expect(clash(nextPhase(r, 0))).toEqual([])
-    expect(clash(backToLobby(rooms[8]))).toEqual([])
+    expect(clash(backToLobby(rooms[7]))).toEqual([])
   })
 
   it('puts the question board between the name and goodbye questions', () => {
@@ -174,38 +178,31 @@ describe('game flow', () => {
     })
   })
 
-  it('goes to question writing when the custom option wins', () => {
-    const r = room({ phase: 'promptVote', promptOptions: [0, 1, 2], promptVotes: { 1: { a: CUSTOM_OPTION, b: CUSTOM_OPTION } } })
-    expect(nextPhase(r, 1000)).toEqual({ phase: 'questionWrite', lockingIn: null, phaseEndsAt: 1000 + QUESTION_WRITE_MS })
+  it('asks a written question when it gets the most votes, with no story sentence', () => {
+    const r = room({
+      phase: 'promptVote',
+      round: 2,
+      promptOptions: [0, 1, 2],
+      questions: { 2: { a: { text: 'Spirit, who stole my fries?', at: 1 } } },
+      promptVotes: { 2: { b: 'a', c: 'a', d: '1' } },
+    })
+    expect(nextPhase(r, 1000)).toEqual({
+      phase: 'answering',
+      prompt: 'Spirit, who stole my fries?',
+      'roundPrompts/2': { question: 'Spirit, who stole my fries?' },
+      lockingIn: null,
+      phaseEndsAt: 1000 + ANSWER_MS,
+    })
   })
 
-  it('picks a listed prompt when nobody voted', () => {
+  it('lists written questions newest first', () => {
+    const r = room({ questions: { 1: { a: { text: 'old', at: 1 }, b: { text: 'new', at: 2 } } } })
+    expect(newestQuestions(r).map(([id]) => id)).toEqual(['b', 'a'])
+  })
+
+  it('picks any option when nobody voted', () => {
     const r = room({ phase: 'promptVote', promptOptions: [1, 2, 3] })
     expect([PROMPTS[1], PROMPTS[2], PROMPTS[3]].map((p) => p.question)).toContain(nextPhase(r, 0).prompt)
-  })
-
-  it('uses a single written question directly', () => {
-    const r = room({ phase: 'questionWrite', questions: { 1: { a: 'Spirit, who stole my fries?' } } })
-    expect(nextPhase(r, 0)).toMatchObject({ phase: 'answering', prompt: 'Spirit, who stole my fries?' })
-  })
-
-  it('votes on questions when several were written', () => {
-    const r = room({ phase: 'questionWrite', questions: { 1: { a: 'q1', b: 'q2' } } })
-    expect(nextPhase(r, 0).phase).toBe('questionVote')
-  })
-
-  it('falls back to a listed prompt when nobody wrote a question', () => {
-    const r = room({ phase: 'questionWrite', promptOptions: [3] })
-    expect(nextPhase(r, 0)).toMatchObject({ phase: 'answering', prompt: PROMPTS[3].question, usedPrompts: [3] })
-  })
-
-  it('asks the most voted written question, ignoring self votes', () => {
-    const r = room({
-      phase: 'questionVote',
-      questions: { 1: { a: 'q1', b: 'q2' } },
-      questionVotes: { 1: { a: 'a', c: 'b' } },
-    })
-    expect(nextPhase(r, 0).prompt).toBe('q2')
   })
 
   it('locks in question votes with a short countdown', () => {
@@ -263,11 +260,6 @@ describe('game flow', () => {
       'roundPrompts/4': GOODBYE_PROMPT,
     })
     expect(nextPhase(room({ phase: 'scores', round: 4 }), 0)).toEqual({ phase: 'final', phaseEndsAt: null })
-  })
-
-  it('records written questions without a story sentence', () => {
-    const r = room({ phase: 'questionWrite', round: 2, questions: { 2: { a: 'Spirit, who stole my fries?' } } })
-    expect(nextPhase(r, 0)['roundPrompts/2']).toEqual({ question: 'Spirit, who stole my fries?' })
   })
 
   it('returns to the lobby with scores cleared', () => {

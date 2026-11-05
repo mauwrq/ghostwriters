@@ -48,9 +48,5 @@ export function submitPromptVote(code: string, round: number, playerId: string, 
 }
 
 export function submitQuestion(code: string, round: number, playerId: string, question: string): Promise<void> {
-  return set(child(roomRef(code), `questions/${round}/${playerId}`), question)
-}
-
-export function submitQuestionVote(code: string, round: number, playerId: string, authorId: string): Promise<void> {
-  return set(child(roomRef(code), `questionVotes/${round}/${playerId}`), authorId)
+  return set(child(roomRef(code), `questions/${round}/${playerId}`), { text: question, at: serverNow() })
 }

@@ -2,9 +2,7 @@
 
 export type Phase =
   | 'lobby'
-  | 'promptVote' // pick this round's question from the board
-  | 'questionWrite' // the custom option won: everyone writes a question
-  | 'questionVote' // pick which written question to ask
+  | 'promptVote' // pick this round's question, or add one to the board
   | 'answering'
   | 'seance' // the board spells out every answer, anonymously
   | 'voting'
@@ -36,6 +34,13 @@ export interface RoundPrompt {
   story?: string
 }
 
+// A question a player added to the board, and when, so every device lists
+// them in the same order.
+export interface AskedQuestion {
+  text: string
+  at: number
+}
+
 export interface Room {
   hostId: string
   createdAt: number
@@ -54,11 +59,10 @@ export interface Room {
   lockingIn?: boolean
   players?: Record<string, Player>
   // Per round: what each player voted for on the question board
-  // (a PROMPTS index as a string, or CUSTOM_OPTION).
+  // (a PROMPTS index as a string, or the author of a written question).
   promptVotes?: Record<number, Record<string, string>>
-  // Per round: questions players wrote, and their votes (author IDs).
-  questions?: Record<number, Record<string, string>>
-  questionVotes?: Record<number, Record<string, string>>
+  // Per round: questions players wrote, by author.
+  questions?: Record<number, Record<string, AskedQuestion>>
   answers?: Record<number, Record<string, string>>
   votes?: Record<number, Record<string, string>>
   results?: Record<number, RoundResult>

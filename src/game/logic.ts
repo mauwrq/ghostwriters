@@ -3,11 +3,10 @@
 import { GOODBYE_PROMPT, NAME_PROMPT, PROMPTS } from './prompts'
 import { sortedPlayers } from './room'
 import { promptIntroMs, revealMs } from './spelling'
-import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH, type Phase, type Room, type RoundResult } from './types'
+import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH, type AskedQuestion, type Phase, type Room, type RoundResult } from './types'
 
-export const PROMPT_VOTE_MS = 20_000
-export const QUESTION_WRITE_MS = 45_000
-export const QUESTION_VOTE_MS = 20_000
+// Long enough to write a question and for everyone to vote on it.
+export const PROMPT_VOTE_MS = 45_000
 // Countdown once everyone has voted on a question; votes can still change.
 export const LOCK_IN_MS = 3_000
 export const ANSWER_MS = 60_000
@@ -19,8 +18,6 @@ export const RESULTS_MS = 10_000
 export const SCORES_MS = 8_000
 
 export const PROMPT_OPTION_COUNT = 3
-// The board option that lets players write their own question.
-export const CUSTOM_OPTION = 'custom'
 
 export const POINTS_PER_VOTE = 100
 export const WINNER_BONUS = 200
@@ -48,12 +45,13 @@ export function roundPromptVotes(room: Room): Votes {
   return room.promptVotes?.[room.round] ?? {}
 }
 
-export function roundQuestions(room: Room): Answers {
+export function roundQuestions(room: Room): Record<string, AskedQuestion> {
   return room.questions?.[room.round] ?? {}
 }
 
-export function roundQuestionVotes(room: Room): Votes {
-  return room.questionVotes?.[room.round] ?? {}
+// This round's written questions by author, newest first.
+export function newestQuestions(room: Room): [string, AskedQuestion][] {
+  return Object.entries(roundQuestions(room)).sort(([, a], [, b]) => b.at - a.at)
 }
 
 function cleanText(input: string, max: number): string {
@@ -158,15 +156,11 @@ export function connectedPlayerIds(room: Room): string[] {
     .map(([id]) => id)
 }
 
-// Who has finished the current phase (answered, voted, or written).
+// Who has finished the current phase (answered or voted).
 export function doneIds(room: Room): string[] {
   switch (room.phase) {
     case 'promptVote':
       return Object.keys(roundPromptVotes(room))
-    case 'questionWrite':
-      return Object.keys(roundQuestions(room))
-    case 'questionVote':
-      return Object.keys(roundQuestionVotes(room))
     case 'answering':
       return Object.keys(roundAnswers(room))
     case 'voting':
@@ -186,7 +180,7 @@ export function isPhaseComplete(room: Room): boolean {
 
 // Question votes end with a short countdown instead of moving on instantly.
 export function hasLockIn(phase: Phase): boolean {
-  return phase === 'promptVote' || phase === 'questionVote'
+  return phase === 'promptVote'
 }
 
 export function lockIn(room: Room, now: number): Updates {
@@ -233,7 +227,6 @@ function resetGame(room: Room): Updates {
     results: null,
     promptVotes: null,
     questions: null,
-    questionVotes: null,
     usedPrompts: null,
     roundPrompts: null,
     lockingIn: null,
@@ -258,27 +251,13 @@ export function backToLobby(room: Room): Updates {
 export function nextPhase(room: Room, now: number, random: Random = Math.random): Updates {
   switch (room.phase) {
     case 'promptVote': {
-      const listed = (room.promptOptions ?? []).map(String)
-      const choice = pickMostVoted([...listed, CUSTOM_OPTION], roundPromptVotes(room), random)
-      if (choice === CUSTOM_OPTION) {
-        return { phase: 'questionWrite', lockingIn: null, phaseEndsAt: now + QUESTION_WRITE_MS }
-      }
-      // Nobody voted: pick one of the listed prompts.
-      return answerListedPrompt(room, Number(choice ?? pickRandom(listed, random)), now)
-    }
-    case 'questionWrite': {
-      const questions = Object.values(roundQuestions(room))
-      if (questions.length === 0) {
-        return answerListedPrompt(room, pickRandom(room.promptOptions ?? [0], random), now)
-      }
-      if (questions.length === 1) return beginAnswering(room.round, questions[0], null, now)
-      return { phase: 'questionVote', lockingIn: null, phaseEndsAt: now + QUESTION_VOTE_MS }
-    }
-    case 'questionVote': {
+      // Options are PROMPTS indexes as strings, or the authors of written questions.
       const questions = roundQuestions(room)
-      const { winners } = tallyVotes(questions, roundQuestionVotes(room))
-      const authorId = pickRandom(winners.length > 0 ? winners : Object.keys(questions), random)
-      return beginAnswering(room.round, questions[authorId], null, now)
+      const options = [...(room.promptOptions ?? []).map(String), ...Object.keys(questions)]
+      // Nobody voted: pick any option.
+      const choice = pickMostVoted(options, roundPromptVotes(room), random) ?? pickRandom(options, random)
+      const written = questions[choice]
+      return written ? beginAnswering(room.round, written.text, null, now) : answerListedPrompt(room, Number(choice), now)
     }
     case 'answering': {
       if (Object.keys(roundAnswers(room)).length < MIN_ANSWERS_TO_VOTE) {

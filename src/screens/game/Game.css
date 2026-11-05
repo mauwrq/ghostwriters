@@ -99,7 +99,7 @@
   gap: var(--space-3);
 }
 
-/* Answering and writing: a field with the submit button beside it. */
+/* Answering and adding a question: a field with the submit button beside it. */
 
 .entry {
   display: flex;
@@ -224,33 +224,48 @@
   }
 }
 
-.option--special {
-  color: var(--ink-soft);
+.option__asker {
+  flex-shrink: 0;
+  display: flex;
 }
 
-/*
- * The "write your own question" option gets a row of dots along its bottom
- * and right edges, like a dithered shadow, so it stands out as special.
- * Each strip is a tile of [gap, dot]; "space" fits only whole tiles along the
- * edge, so there are no cut-off dots and the bottom-right corner always gets
- * one dot shared by both strips. (::after, since ::before is the cursor.)
- */
-.option--special::after {
-  --dot: 3px;
-  content: "";
-  position: absolute;
-  inset: 0 calc(-1 * var(--dot)) calc(-1 * var(--dot)) 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent 50%, var(--box-bg) 50%) right bottom / calc(2 * var(--dot)) var(--dot)
-      space no-repeat,
-    linear-gradient(180deg, transparent 50%, var(--box-bg) 50%) right bottom / var(--dot) calc(2 * var(--dot))
-      no-repeat space;
+/* A player's question opens up at the top of the board, pushing the rest down. */
+.option-row--arriving {
+  display: grid;
+  animation: option-open 0.35s ease-out;
 }
 
-.option--special.option--chosen,
-.option--special:hover {
-  color: var(--ink);
+.option-row--arriving > div {
+  min-height: 0;
+  animation: option-clip 0.35s;
+}
+
+@keyframes option-open {
+  from {
+    grid-template-rows: 0fr;
+    margin-bottom: calc(-1 * var(--space-2));
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    margin-bottom: 0;
+    opacity: 1;
+  }
+}
+
+/* Only clipped while opening, so the dotted edge isn't cut off afterwards. */
+@keyframes option-clip {
+  from,
+  99% {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option-row--arriving,
+  .option-row--arriving > div {
+    animation: none;
+  }
 }
 
 .option:disabled {

@@ -6,10 +6,11 @@ interface Props {
   maxLength: number
   clean: (input: string) => string
   onSubmit: (value: string) => void
+  autoFocus?: boolean
 }
 
 // A black box with a text field and a submit button beside it.
-export function TextEntry({ placeholder, maxLength, clean, onSubmit }: Props) {
+export function TextEntry({ placeholder, maxLength, clean, onSubmit, autoFocus = true }: Props) {
   const [draft, setDraft] = useState('')
 
   return (
@@ -29,7 +30,7 @@ export function TextEntry({ placeholder, maxLength, clean, onSubmit }: Props) {
           value={draft}
           maxLength={maxLength}
           autoComplete="off"
-          autoFocus
+          autoFocus={autoFocus}
           onChange={(e) => setDraft(e.target.value)}
         />
         <button className="btn" type="submit" disabled={!clean(draft)}>

@@ -10,8 +10,6 @@ import { Answering } from './Answering'
 import { Credits } from './Credits'
 import { GameHeader } from './GameHeader'
 import { PromptVote } from './PromptVote'
-import { QuestionVote } from './QuestionVote'
-import { QuestionWrite } from './QuestionWrite'
 import { Results } from './Results'
 import { Seance } from './Seance'
 import { Scoreboard } from './Scoreboard'
@@ -52,8 +50,6 @@ export function Game({ code, room: liveRoom, playerId, onLeave }: Props) {
         {(phase === 'answering' || phase === 'voting') && <h2 className="panel game-prompt">{room.prompt}</h2>}
 
         {phase === 'promptVote' && <PromptVote code={code} room={room} playerId={playerId} />}
-        {phase === 'questionWrite' && <QuestionWrite code={code} room={room} playerId={playerId} />}
-        {phase === 'questionVote' && <QuestionVote code={code} room={room} playerId={playerId} />}
         {phase === 'answering' && <Answering code={code} room={room} playerId={playerId} />}
         {phase === 'voting' && <Voting code={code} room={room} playerId={playerId} />}
         {phase === 'seance' && <Seance room={room} />}
