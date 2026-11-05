@@ -1,8 +1,7 @@
-// The end-of-game credits: the story the winning answers tell, and a few
+// The end-of-game credits: what was asked and answered each round, and a few
 // stats about how everyone voted. Pure functions of the room.
 import { answerOrder, lastRound } from './logic'
 import { sortedPlayers } from './room'
-import { CUSTOM_STORY, NAME_PROMPT, NAMELESS_SPIRIT } from './prompts'
 import type { Room } from './types'
 
 export interface Winner {
@@ -10,63 +9,43 @@ export interface Winner {
   text: string
 }
 
-// A round's winning answer. With a tie, the one spelled first wins the story.
-export function winningAnswer(room: Room, round: number): Winner | null {
-  const winners = room.results?.[round]?.winners ?? []
-  const hit = answerOrder(room, round).find(([id]) => winners.includes(id))
-  return hit ? { authorId: hit[0], text: hit[1] } : null
+export interface RankedAnswer extends Winner {
+  votes: number
 }
 
-// A piece of the story. Blanks are the parts filled in by players' answers.
-export interface StoryPart {
-  text: string
-  blank?: boolean
+export interface RoundRecap {
+  round: number
+  question: string
+  // The answers the group voted in. More than one if they tied.
+  winners: RankedAnswer[]
+  // Everyone else's answers, most votes first.
+  others: RankedAnswer[]
 }
 
-export type StorySentence = StoryPart[]
-
-// Answers go mid-sentence, so trailing punctuation would double up.
-function tidy(answer: string): string {
-  return answer.trim().replace(/[.!?]+$/, '')
-}
-
-function fill(template: string, values: Record<string, string>): StorySentence {
-  const parts: StorySentence = []
-  let last = 0
-  for (const match of template.matchAll(/\{(\w+)\}/g)) {
-    if (match.index > last) parts.push({ text: template.slice(last, match.index) })
-    const value = values[match[1]] ?? ''
-    // The question itself isn't a player's blank, just part of the sentence.
-    parts.push(match[1] === 'question' ? { text: value } : { text: value, blank: true })
-    last = match.index + match[0].length
+// One entry per question asked, in the order they were asked.
+export function roundRecaps(room: Room): RoundRecap[] {
+  const recaps: RoundRecap[] = []
+  for (let round = 1; round <= lastRound(room); round++) {
+    const question = room.roundPrompts?.[round]?.question
+    if (!question) continue
+    const result = room.results?.[round]
+    const winners = result?.winners ?? []
+    const ranked = answerOrder(room, round)
+      .map(([authorId, text]) => ({ authorId, text, votes: result?.voteCounts?.[authorId] ?? 0 }))
+      .sort((a, b) => b.votes - a.votes)
+    recaps.push({
+      round,
+      question,
+      winners: ranked.filter((answer) => winners.includes(answer.authorId)),
+      others: ranked.filter((answer) => !winners.includes(answer.authorId)),
+    })
   }
-  if (last < template.length) parts.push({ text: template.slice(last) })
-  return parts
-}
-
-export function spiritName(room: Room): string {
-  const name = winningAnswer(room, 1)
-  return name ? tidy(name.text) : NAMELESS_SPIRIT
-}
-
-// One sentence per round that had a winning answer, starting with the name.
-export function buildStory(room: Room): StorySentence[] {
-  const spirit = spiritName(room)
-  const sentences: StorySentence[] = [fill(room.roundPrompts?.[1]?.story ?? NAME_PROMPT.story, { spirit })]
-  for (let round = 2; round <= lastRound(room); round++) {
-    const winner = winningAnswer(room, round)
-    const prompt = room.roundPrompts?.[round]
-    if (!winner || !prompt) continue
-    sentences.push(
-      fill(prompt.story ?? CUSTOM_STORY, { spirit, answer: tidy(winner.text), question: tidy(prompt.question) }),
-    )
-  }
-  return sentences
+  return recaps
 }
 
 export interface GameStats {
   // The single answer that got the most votes in its round.
-  topAnswer: (Winner & { votes: number }) | null
+  topAnswer: RankedAnswer | null
   // The player whose answers got the most votes over the whole game.
   crowdFavorite: { playerId: string; votes: number } | null
   // The player who voted for the same person most often (at least twice).

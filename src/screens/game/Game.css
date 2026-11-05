@@ -470,7 +470,7 @@
   }
 }
 
-/* Credits: the story, the stats, then the final scores, fading in one by one. */
+/* Credits: the final scores, the stats, then the questions and answers, fading in one by one. */
 
 .credits {
   display: flex;
@@ -500,17 +500,33 @@
   }
 }
 
-.credits__story {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  line-height: 1.5;
+/* One question: the answer voted in, then the rest ranked below it. */
+.credits__round {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-/* The players' answers, filled into the blanks. */
-.credits__blank {
+.credits__question {
+  margin: 0;
+  font-size: var(--font-size-md);
+  overflow-wrap: anywhere;
+}
+
+.credits__voted-in {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.credits__answer {
+  margin: 0;
+  font-family: var(--font-display);
   font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 5px;
+  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .credits__stats {

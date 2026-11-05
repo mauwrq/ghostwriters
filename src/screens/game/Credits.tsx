@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { Ghost } from '../../components/Ghost'
+import { gameStats, roundRecaps } from '../../game/credits'
 import { finalWinners } from '../../game/logic'
-import { buildStory, gameStats } from '../../game/story'
 import type { Room } from '../../game/types'
 import { hostBackToLobby } from '../../lib/game'
 import { text } from '../../text'
+import { Author } from './Results'
 import { Scoreboard } from './Scoreboard'
 
 interface Props {
@@ -14,11 +15,11 @@ interface Props {
   onLeave: () => void
 }
 
-// The end of the game, like a film's credits: the story the winning answers
-// told, how everyone voted, then the final scores. Each part fades in after
-// the one before.
+// The end of the game, like a film's credits: the final scores, how everyone
+// voted, then each question with the answer voted in and everyone else's below
+// it. Each part fades in after the one before.
 export function Credits({ code, room, isHost, onLeave }: Props) {
-  const story = buildStory(room)
+  const recaps = roundRecaps(room)
   const stats = gameStats(room)
   const name = (id: string) => <PlayerName room={room} playerId={id} />
 
@@ -61,23 +62,9 @@ export function Credits({ code, room, isHost, onLeave }: Props) {
 
   return (
     <div className="credits">
-      <section className="credits__part">
-        <span className="label label--ink">{text.theStory}</span>
-        <p className="panel credits__story">
-          {story.map((sentence, i) => (
-            <span key={i}>
-              {sentence.map((part, j) =>
-                part.blank ? (
-                  <span key={j} className="credits__blank">
-                    {part.text}
-                  </span>
-                ) : (
-                  part.text
-                ),
-              )}{' '}
-            </span>
-          ))}
-        </p>
+      <section className="credits__part panel game-body">
+        <span className="label">{text.finalScores}</span>
+        <Scoreboard room={room} highlight={finalWinners(room)} />
       </section>
 
       {rows.length > 0 && (
@@ -91,9 +78,30 @@ export function Credits({ code, room, isHost, onLeave }: Props) {
         </dl>
       )}
 
-      <section className="credits__part panel game-body">
-        <span className="label">{text.finalScores}</span>
-        <Scoreboard room={room} highlight={finalWinners(room)} />
+      <section className="credits__part">
+        <span className="label label--ink">{text.allAnswers}</span>
+        {recaps.map((recap) => (
+          <article key={recap.round} className="panel credits__round">
+            <h3 className="credits__question">{recap.question}</h3>
+            {recap.winners.map((answer) => (
+              <div key={answer.authorId} className="credits__voted-in">
+                <p className="credits__answer">{answer.text}</p>
+                <Author room={room} playerId={answer.authorId} votes={answer.votes} small />
+              </div>
+            ))}
+            {recap.others.length > 0 && (
+              <ul className="reveal__list">
+                {recap.others.map((answer) => (
+                  <li key={answer.authorId} className="reveal__item">
+                    <span className="reveal__item-answer">{answer.text}</span>
+                    <Author room={room} playerId={answer.authorId} votes={answer.votes} small />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {recap.winners.length + recap.others.length === 0 && <p className="hint">{text.noAnswer}</p>}
+          </article>
+        ))}
         {isHost ? (
           <button className="btn btn--go btn--big" type="button" onClick={() => void hostBackToLobby(code, room)}>
             {text.playAgain}

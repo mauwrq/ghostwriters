@@ -190,9 +190,9 @@ export function lockIn(room: Room, now: number): Updates {
 // The first and last rounds ask fixed questions; the ones between go to the
 // question board.
 function beginRound(round: number, room: Room, now: number, random: Random): Updates {
-  if (round === 1) return { round, ...beginAnswering(round, NAME_PROMPT.question, NAME_PROMPT.story, now) }
+  if (round === 1) return { round, ...beginAnswering(round, NAME_PROMPT.question, now) }
   if (round === lastRound(room)) {
-    return { round, ...beginAnswering(round, GOODBYE_PROMPT.question, GOODBYE_PROMPT.story, now) }
+    return { round, ...beginAnswering(round, GOODBYE_PROMPT.question, now) }
   }
   return {
     phase: 'promptVote',
@@ -204,20 +204,19 @@ function beginRound(round: number, room: Room, now: number, random: Random): Upd
   }
 }
 
-// Also records the round's question and story sentence for the credits.
-function beginAnswering(round: number, question: string, story: string | null, now: number): Updates {
+// Also records the round's question for the credits.
+function beginAnswering(round: number, question: string, now: number): Updates {
   return {
     phase: 'answering',
     prompt: question,
-    [`roundPrompts/${round}`]: story ? { question, story } : { question },
+    [`roundPrompts/${round}`]: { question },
     lockingIn: null,
     phaseEndsAt: now + ANSWER_MS,
   }
 }
 
 function answerListedPrompt(room: Room, index: number, now: number): Updates {
-  const { question, story } = PROMPTS[index]
-  return { ...beginAnswering(room.round, question, story, now), usedPrompts: [...(room.usedPrompts ?? []), index] }
+  return { ...beginAnswering(room.round, PROMPTS[index].question, now), usedPrompts: [...(room.usedPrompts ?? []), index] }
 }
 
 function resetGame(room: Room): Updates {
@@ -257,7 +256,7 @@ export function nextPhase(room: Room, now: number, random: Random = Math.random)
       // Nobody voted: pick any option.
       const choice = pickMostVoted(options, roundPromptVotes(room), random) ?? pickRandom(options, random)
       const written = questions[choice]
-      return written ? beginAnswering(room.round, written.text, null, now) : answerListedPrompt(room, Number(choice), now)
+      return written ? beginAnswering(room.round, written.text, now) : answerListedPrompt(room, Number(choice), now)
     }
     case 'answering': {
       if (Object.keys(roundAnswers(room)).length < MIN_ANSWERS_TO_VOTE) {

@@ -161,7 +161,7 @@ describe('game flow', () => {
     expect(next.promptOptions).toHaveLength(3)
   })
 
-  it('uses the voted prompt, and records it for the story', () => {
+  it('uses the voted prompt, and records it for the credits', () => {
     const r = room({
       phase: 'promptVote',
       round: 2,
@@ -178,7 +178,7 @@ describe('game flow', () => {
     })
   })
 
-  it('asks a written question when it gets the most votes, with no story sentence', () => {
+  it('asks a written question when it gets the most votes', () => {
     const r = room({
       phase: 'promptVote',
       round: 2,

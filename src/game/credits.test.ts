@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { GOODBYE_PROMPT, NAME_PROMPT, NAMELESS_SPIRIT, PROMPTS } from './prompts'
-import { buildStory, gameStats, spiritName, winningAnswer, type StorySentence } from './story'
+import { gameStats, roundRecaps } from './credits'
+import { GOODBYE_PROMPT, NAME_PROMPT, PROMPTS } from './prompts'
 import type { Player, Room } from './types'
 
 function player(joinedAt: number): Player {
@@ -39,46 +39,36 @@ function finishedGame(overrides: Partial<Room> = {}): Room {
   }
 }
 
-const asText = (sentence: StorySentence) => sentence.map((p) => p.text).join('')
-
-describe('the story', () => {
-  it('names the spirit after the first winning answer', () => {
-    expect(spiritName(finishedGame())).toBe('Queen Elinore the III')
-    expect(winningAnswer(finishedGame(), 1)).toEqual({ authorId: 'a', text: 'Queen Elinore the III' })
-  })
-
-  it("fills each round's sentence with its winning answer", () => {
-    expect(buildStory(finishedGame()).map(asText)).toEqual([
-      'The group spoke with Queen Elinore the III.',
-      'Queen Elinore the III died of boredom.',
-      'By the end, Queen Elinore the III warned the players: run.',
+describe('the round recaps', () => {
+  it('lists each question with its winner, then the rest by votes', () => {
+    const recaps = roundRecaps(finishedGame())
+    expect(recaps.map((r) => r.question)).toEqual([NAME_PROMPT.question, PROMPTS[0].question, GOODBYE_PROMPT.question])
+    expect(recaps[1].winners).toEqual([{ authorId: 'b', text: 'of boredom.', votes: 2 }])
+    expect(recaps[1].others).toEqual([
+      { authorId: 'a', text: 'by tripping on a quill', votes: 1 },
+      { authorId: 'c', text: 'twice', votes: 0 },
     ])
   })
 
-  it("marks the players' answers as blanks", () => {
-    const [first] = buildStory(finishedGame())
-    expect(first).toEqual([
-      { text: 'The group spoke with ' },
-      { text: 'Queen Elinore the III', blank: true },
-      { text: '.' },
-    ])
-  })
-
-  it('uses a generic sentence for questions the players wrote', () => {
+  it('shows every tied winner', () => {
     const room = finishedGame({
-      roundPrompts: { 1: NAME_PROMPT, 2: { question: 'Spirit, who ate my fries?' }, 3: GOODBYE_PROMPT },
+      results: {
+        1: { winners: ['a', 'b'], voteCounts: { a: 1, b: 1, c: 0 } },
+      },
     })
-    expect(asText(buildStory(room)[1])).toBe(
-      'When asked "Spirit, who ate my fries", Queen Elinore the III said "of boredom".',
-    )
+    expect(roundRecaps(room)[0].winners.map((a) => a.authorId).sort()).toEqual(['a', 'b'])
   })
 
-  it('skips rounds with no winner, and copes with no name', () => {
-    const room = finishedGame({ results: { 2: { skipped: true }, 3: { winners: ['a'], voteCounts: { a: 1 } } } })
-    expect(buildStory(room).map(asText)).toEqual([
-      'The group spoke with ' + NAMELESS_SPIRIT + '.',
-      'By the end, ' + NAMELESS_SPIRIT + ' warned the players: beware the cat.',
-    ])
+  it('still lists the answers of a round with no winner', () => {
+    const room = finishedGame({ results: { 2: { skipped: true } } })
+    const [, second] = roundRecaps(room)
+    expect(second.winners).toEqual([])
+    expect(second.others).toHaveLength(3)
+  })
+
+  it('skips rounds that were never asked', () => {
+    const room = finishedGame({ roundPrompts: { 1: NAME_PROMPT, 3: GOODBYE_PROMPT } })
+    expect(roundRecaps(room).map((r) => r.round)).toEqual([1, 3])
   })
 })
 

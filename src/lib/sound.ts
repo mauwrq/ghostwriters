@@ -34,7 +34,7 @@ const sounds = new Map<string, AudioBuffer>()
 const loading = new Set<string>()
 
 let musicWanted = false
-let music: { source: AudioBufferSourceNode; volume: GainNode } | null = null
+let music: { source: AudioBufferSourceNode; volume: GainNode; startedAt: number } | null = null
 
 function bus(kind: VolumeKind, audio: AudioContext): GainNode {
   const existing = buses[kind]
@@ -146,9 +146,13 @@ function syncMusic() {
   const now = context.currentTime
 
   if (!musicWanted && music) {
-    const { source, volume } = music
+    const { source, volume, startedAt } = music
+    // gain.value still reads 1 right after the fade-in is scheduled, so work
+    // out the level from the fade. React starts and stops the music at once in
+    // dev, which would otherwise blast it.
+    const level = MUSIC_VOLUME * Math.min(1, (now - startedAt) / MUSIC_FADE_SECONDS)
     volume.gain.cancelScheduledValues(now)
-    volume.gain.setValueAtTime(volume.gain.value, now)
+    volume.gain.setValueAtTime(level, now)
     volume.gain.linearRampToValueAtTime(0, now + MUSIC_FADE_SECONDS)
     source.stop(now + MUSIC_FADE_SECONDS)
     music = null
@@ -167,7 +171,7 @@ function syncMusic() {
 
     source.connect(volume).connect(bus('music', context))
     source.start(now)
-    music = { source, volume }
+    music = { source, volume, startedAt: now }
   }
 }
 

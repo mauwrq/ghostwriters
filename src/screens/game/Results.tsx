@@ -46,7 +46,7 @@ export function Results({ room }: { room: Room }) {
   )
 }
 
-function Author({ room, playerId, votes, small = false }: { room: Room; playerId: string; votes: number; small?: boolean }) {
+export function Author({ room, playerId, votes, small = false }: { room: Room; playerId: string; votes: number; small?: boolean }) {
   const player = room.players?.[playerId]
   if (!player?.name) return null
   return (

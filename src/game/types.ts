@@ -27,11 +27,9 @@ export interface RoundResult {
   skipped?: boolean
 }
 
-// The question asked in a round, and the story sentence its winning answer
-// fills in (none for questions the players wrote themselves).
+// The question asked in a round, kept for the credits.
 export interface RoundPrompt {
   question: string
-  story?: string
 }
 
 // A question a player added to the board, and when, so every device lists

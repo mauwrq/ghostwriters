@@ -46,7 +46,6 @@ export const text = {
   scores: 'scores',
   next: 'next',
   finalScores: 'final scores',
-  theStory: 'the story',
   topAnswer: 'most voted answer',
   crowdFavorite: 'crowd favorite',
   biggestFan: 'biggest fan',
