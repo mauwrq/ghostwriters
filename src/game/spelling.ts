@@ -89,6 +89,8 @@ export interface PlanchetteState {
   shown: number
   // The key the planchette is resting on, if any.
   lit: string | null
+  // While sliding: how far this slide goes, in board pixels.
+  slide?: number
 }
 
 function spotFor(key: string | null): { x: number; y: number } {
@@ -126,6 +128,7 @@ export function planchetteAt(texts: string[], elapsed: number): PlanchetteState 
             y: from.y + (to.y - from.y) * p,
             shown,
             lit: null,
+            slide: Math.hypot(to.x - from.x, to.y - from.y),
           }
         }
         if (t < duration) {

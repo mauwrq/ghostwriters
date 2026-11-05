@@ -46,3 +46,14 @@ export function getSavedName(): string {
 export function saveName(name: string): void {
   write(() => localStorage, NAME_KEY, name)
 }
+
+export type VolumeKind = 'music' | 'sfx'
+
+export function getSavedVolume(kind: VolumeKind): number {
+  const saved = Number(read(() => localStorage, `ghostwriters.${kind}`) ?? 1)
+  return Number.isNaN(saved) ? 1 : saved
+}
+
+export function saveVolume(kind: VolumeKind, value: number): void {
+  write(() => localStorage, `ghostwriters.${kind}`, String(value))
+}

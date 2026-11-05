@@ -2,6 +2,9 @@
 export const text = {
   title: 'Ghostwriters',
 
+  music: 'music',
+  sfx: 'sfx',
+
   namePlaceholder: 'your name',
   codePlaceholder: 'room code',
   join: 'join room',

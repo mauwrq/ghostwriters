@@ -92,6 +92,18 @@ describe('sliding', () => {
     const cross = (b.x - a.x) * (mid.y - a.y) - (b.y - a.y) * (mid.x - a.x)
     expect(Math.abs(cross)).toBeLessThan(1e-6)
   })
+
+  it('says how far the slide goes, only while sliding', () => {
+    const a = SPOT_BY_KEY.get('A')!
+    const b = SPOT_BY_KEY.get('B')!
+    const sliding = planchetteAt(['ab'], INTRO_MS + MOVE_MS + HOLD_MS + MOVE_MS / 2)
+    expect(sliding.slide).toBeCloseTo(Math.hypot(b.x - a.x, b.y - a.y))
+    expect(planchetteAt(['ab'], INTRO_MS + MOVE_MS + 10).slide).toBeUndefined()
+  })
+
+  it('has no slide between two of the same letter', () => {
+    expect(planchetteAt(['aa'], INTRO_MS + MOVE_MS + HOLD_MS + MOVE_MS / 2).slide).toBe(0)
+  })
 })
 
 describe('question intro', () => {

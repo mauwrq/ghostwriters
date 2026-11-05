@@ -37,6 +37,9 @@
   --space-3: 16px;
   --space-4: 24px;
   --space-5: 40px;
+
+  /* Room to scroll clear of the volume icons fixed in the corner. */
+  --volume-bar-space: 48px;
   --radius: 3px;
   --radius-sm: 2px;
 }

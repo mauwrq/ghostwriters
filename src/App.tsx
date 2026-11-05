@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isValidRoomCode, normalizeRoomCode } from './game/room'
 import { FADE_OUT_MS, usePhaseFade } from './hooks/usePhaseFade'
+import { usePlayerSounds } from './hooks/usePlayerSounds'
 import { useRoom } from './hooks/useRoom'
 import { db } from './lib/firebase'
 import { getPlayerId } from './lib/identity'
@@ -92,6 +93,7 @@ interface RoomViewProps {
 function RoomView({ code, playerId, leaving, onLeave, onRoomGone }: RoomViewProps) {
   const liveRoom = useRoom(code, playerId)
   const inRoom = Boolean(liveRoom?.players?.[playerId]?.name)
+  usePlayerSounds(liveRoom?.phase === 'lobby' ? liveRoom.players : undefined, playerId)
 
   useEffect(() => {
     if (leaving) return

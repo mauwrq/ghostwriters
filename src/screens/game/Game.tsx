@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { roundPoints, roundResult } from '../../game/logic'
 import type { Phase, Room } from '../../game/types'
 import { useHostLoop } from '../../hooks/useHostLoop'
 import { usePhaseFade } from '../../hooks/usePhaseFade'
 import { advancePhase } from '../../lib/game'
+import { startMusic, stopMusic } from '../../lib/sound'
 import { text } from '../../text'
 import { Answering } from './Answering'
 import { Credits } from './Credits'
@@ -26,6 +28,12 @@ interface Props {
 export function Game({ code, room: liveRoom, playerId, onLeave }: Props) {
   const isHost = liveRoom.hostId === playerId
   useHostLoop(code, liveRoom, isHost)
+
+  // The music plays from the start of the game until back in the lobby or out.
+  useEffect(() => {
+    startMusic()
+    return stopMusic
+  }, [])
 
   // Each screen fades out before the next fades in. The key also resets any
   // typed-in state between phases.

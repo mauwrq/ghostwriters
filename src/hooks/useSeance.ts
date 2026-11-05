@@ -2,6 +2,8 @@ import { answerOrder, seancePhaseMs } from '../game/logic'
 import { planchetteAt, promptIntroMs, typedChars, type PlanchetteState } from '../game/spelling'
 import type { Room } from '../game/types'
 import { useClock } from './useClock'
+import { useSlideSound } from './useSlideSound'
+import { useTypingSound } from './useTypingSound'
 
 export interface SeanceState {
   // Every answer, in the order the board spells them.
@@ -22,11 +24,15 @@ export function useSeance(room: Room): SeanceState {
   const startAt = endAt - seancePhaseMs(room.prompt, texts)
   const spellingAt = startAt + promptIntroMs(room.prompt)
   const now = useClock(endAt)
+  const planchette = planchetteAt(texts, now - spellingAt)
+  const promptShown = typedChars(room.prompt, now - startAt)
+  useTypingSound(room.prompt, promptShown)
+  useSlideSound(planchette.slide)
 
   return {
     texts,
-    promptShown: typedChars(room.prompt, now - startAt),
-    planchette: planchetteAt(texts, now - spellingAt),
+    promptShown,
+    planchette,
     spelling: now >= spellingAt,
   }
 }
