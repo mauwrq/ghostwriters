@@ -1,6 +1,7 @@
 import { OuijaBoard } from '../../components/OuijaBoard'
 import type { Room } from '../../game/types'
 import { useSeance } from '../../hooks/useSeance'
+import { text } from '../../text'
 
 // The séance: the question types itself out under the board, then the
 // planchette spells every answer in turn while the spirit's box at the top
@@ -11,6 +12,8 @@ export function Seance({ room }: { room: Room }) {
 
   return (
     <section className="seance">
+      <span className="label label--ink">{text.watchBoard}</span>
+
       <div className="panel dialogue">
         <p className="dialogue__text" aria-live="polite">{words}</p>
       </div>

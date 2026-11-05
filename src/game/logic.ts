@@ -5,6 +5,8 @@ import { sortedPlayers } from './room'
 import { promptIntroMs, revealMs } from './spelling'
 import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH, type AskedQuestion, type Phase, type Room, type RoundResult } from './types'
 
+// Long enough to read the how-to-play screen.
+export const INTRO_MS = 12_000
 // Long enough to write a question and for everyone to vote on it.
 export const PROMPT_VOTE_MS = 45_000
 // Countdown once everyone has voted on a question; votes can still change.
@@ -102,8 +104,12 @@ export function answerOrder(room: Room, round: number = room.round): [string, st
 
 // A game is the name question, then the number of questions the host picked,
 // then the goodbye question.
+export function gameLength(questions: number): number {
+  return questions + 2
+}
+
 export function lastRound(room: Room): number {
-  return room.totalRounds + 2
+  return gameLength(room.totalRounds)
 }
 
 // How long the séance lasts: the question types itself out, then the
@@ -234,12 +240,9 @@ function resetGame(room: Room): Updates {
   return updates
 }
 
-export function startGame(room: Room, now: number, random: Random = Math.random): Updates {
-  const fresh = { ...room, usedPrompts: [] }
-  // Firebase rejects an update that clears roundPrompts and sets
-  // roundPrompts/1 at once, so the fresh list is written whole.
-  const { 'roundPrompts/1': firstPrompt, ...firstRound } = beginRound(1, fresh, now, random)
-  return { ...resetGame(room), gameStartedAt: now, ...firstRound, roundPrompts: { 1: firstPrompt } }
+// The game opens on the how-to-play screen; round 1 follows it.
+export function startGame(room: Room, now: number): Updates {
+  return { ...resetGame(room), gameStartedAt: now, phase: 'intro', round: 0, prompt: '', phaseEndsAt: now + INTRO_MS }
 }
 
 export function backToLobby(room: Room): Updates {
@@ -249,6 +252,8 @@ export function backToLobby(room: Room): Updates {
 // What the host writes when the current phase ends.
 export function nextPhase(room: Room, now: number, random: Random = Math.random): Updates {
   switch (room.phase) {
+    case 'intro':
+      return beginRound(1, room, now, random)
     case 'promptVote': {
       // Options are PROMPTS indexes as strings, or the authors of written questions.
       const questions = roundQuestions(room)

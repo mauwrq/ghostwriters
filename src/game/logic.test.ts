@@ -3,7 +3,9 @@ import {
   answerOrder,
   ANSWER_MS,
   backToLobby,
+  gameLength,
   hasLockIn,
+  INTRO_MS,
   lockIn,
   LOCK_IN_MS,
   pickMostVoted,
@@ -116,16 +118,28 @@ describe('isPhaseComplete', () => {
 })
 
 describe('game flow', () => {
-  it('starts by asking the spirit its name, and resets scores', () => {
+  it('starts on the how-to-play screen, and resets scores', () => {
     const updates = startGame(room({ phase: 'lobby', round: 0, usedPrompts: [0, 1] }), 1000)
-    expect(updates).toMatchObject({
+    expect(updates).toMatchObject({ phase: 'intro', round: 0, phaseEndsAt: 1000 + INTRO_MS, usedPrompts: null })
+    expect(updates['players/a/score']).toBe(0)
+  })
+
+  it('moves from the how-to-play screen to asking the spirit its name', () => {
+    expect(nextPhase(room({ phase: 'intro', round: 0, prompt: '' }), 1000)).toMatchObject({
       phase: 'answering',
       round: 1,
       prompt: NAME_PROMPT.question,
-      roundPrompts: { 1: NAME_PROMPT },
+      'roundPrompts/1': NAME_PROMPT,
       phaseEndsAt: 1000 + ANSWER_MS,
     })
-    expect(updates['players/a/score']).toBe(0)
+  })
+
+  it('never finishes the how-to-play screen early', () => {
+    expect(isPhaseComplete(room({ phase: 'intro', round: 0 }))).toBe(false)
+  })
+
+  it('counts the name and goodbye questions in the length of a game', () => {
+    expect(gameLength(4)).toBe(6)
   })
 
   // Firebase rejects a multi-path update where one path contains another.
@@ -149,6 +163,7 @@ describe('game flow', () => {
       room({ phase: 'scores', round: 1 }),
       room({ phase: 'scores', round: 3 }),
       room({ phase: 'final', round: 4 }),
+      room({ phase: 'intro', round: 0 }),
     ]
     expect(clash(startGame(rooms[0], 0))).toEqual([])
     for (const r of rooms) expect(clash(nextPhase(r, 0))).toEqual([])

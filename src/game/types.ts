@@ -2,6 +2,7 @@
 
 export type Phase =
   | 'lobby'
+  | 'intro' // how to play, shown once before the first round
   | 'promptVote' // pick this round's question, or add one to the board
   | 'answering'
   | 'seance' // the board spells out every answer, anonymously

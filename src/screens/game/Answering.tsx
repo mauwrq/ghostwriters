@@ -20,12 +20,15 @@ export function Answering({ code, room, playerId }: { code: string; room: Room; 
           <p className="submitted__answer">{myAnswer}</p>
         </div>
       ) : (
-        <TextEntry
-          placeholder={text.answerPlaceholder}
-          maxLength={MAX_ANSWER_LENGTH}
-          clean={cleanAnswer}
-          onSubmit={(answer) => void submitAnswer(code, room.round, playerId, answer)}
-        />
+        <>
+          <span className="label label--ink">{text.beTheSpirit}</span>
+          <TextEntry
+            placeholder={text.answerPlaceholder}
+            maxLength={MAX_ANSWER_LENGTH}
+            clean={cleanAnswer}
+            onSubmit={(answer) => void submitAnswer(code, room.round, playerId, answer)}
+          />
+        </>
       )}
 
       <PlayerProgress room={room} doneIds={answeredIds} label={text.answered(doneCount, connected.length)} />

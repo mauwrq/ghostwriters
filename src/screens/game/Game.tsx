@@ -9,6 +9,7 @@ import { text } from '../../text'
 import { Answering } from './Answering'
 import { Credits } from './Credits'
 import { GameHeader } from './GameHeader'
+import { Intro } from './Intro'
 import { PromptVote } from './PromptVote'
 import { Results } from './Results'
 import { Seance } from './Seance'
@@ -49,6 +50,7 @@ export function Game({ code, room: liveRoom, playerId, onLeave }: Props) {
       <div key={shownKey} className={sceneClass}>
         {(phase === 'answering' || phase === 'voting') && <h2 className="panel game-prompt">{room.prompt}</h2>}
 
+        {phase === 'intro' && <Intro />}
         {phase === 'promptVote' && <PromptVote code={code} room={room} playerId={playerId} />}
         {phase === 'answering' && <Answering code={code} room={room} playerId={playerId} />}
         {phase === 'voting' && <Voting code={code} room={room} playerId={playerId} />}
@@ -64,8 +66,8 @@ export function Game({ code, room: liveRoom, playerId, onLeave }: Props) {
 
         {phase === 'final' && <Credits code={code} room={room} isHost={isHost} onLeave={onLeave} />}
 
-        {/* Lets the host skip the wait on screens that only show results. */}
-        {isHost && (phase === 'reveal' || phase === 'scores') && (
+        {/* Lets the host skip the wait on screens with nothing to do. */}
+        {isHost && (phase === 'intro' || phase === 'reveal' || phase === 'scores') && (
           <button className="btn btn--alt" type="button" onClick={() => void advancePhase(code, room)}>
             {text.next}
           </button>

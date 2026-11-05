@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Ghost } from '../components/Ghost'
 import { Logo } from '../components/Logo'
+import { gameLength } from '../game/logic'
 import { canStart, sortedPlayers } from '../game/room'
 import { MAX_PLAYERS, MIN_PLAYERS, ROUND_OPTIONS, type Room } from '../game/types'
 import { hostStartGame } from '../lib/game'
@@ -62,7 +63,7 @@ export function Lobby({ code, room, playerId, onLeave }: Props) {
             >
               {ROUND_OPTIONS.map((n) => (
                 <option key={n} value={n}>
-                  {n}
+                  {gameLength(n)}
                 </option>
               ))}
             </select>

@@ -8,7 +8,8 @@ export function GameHeader({ room }: { room: Room }) {
 
   return (
     <header className="game-header">
-      <span className="label label--ink">{text.round(room.round, lastRound(room))}</span>
+      {/* The how-to-play screen comes before round 1. */}
+      <span className="label label--ink">{room.round > 0 && text.round(room.round, lastRound(room))}</span>
       {secondsLeft !== null && <span className={secondsLeft <= 10 ? 'timer timer--low' : 'timer'}>{secondsLeft}</span>}
     </header>
   )
