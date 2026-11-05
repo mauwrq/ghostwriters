@@ -29,6 +29,13 @@ export interface RoundResult {
   skipped?: boolean
 }
 
+// The question asked in a round, and the story sentence its winning answer
+// fills in (none for questions the players wrote themselves).
+export interface RoundPrompt {
+  question: string
+  story?: string
+}
+
 export interface Room {
   hostId: string
   createdAt: number
@@ -55,6 +62,7 @@ export interface Room {
   answers?: Record<number, Record<string, string>>
   votes?: Record<number, Record<string, string>>
   results?: Record<number, RoundResult>
+  roundPrompts?: Record<number, RoundPrompt>
 }
 
 export const MIN_PLAYERS = 3

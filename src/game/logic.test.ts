@@ -22,7 +22,7 @@ import {
   tallyVotes,
   VOTE_MS,
 } from './logic'
-import { PROMPTS } from './prompts'
+import { GOODBYE_PROMPT, NAME_PROMPT, PROMPTS } from './prompts'
 import type { Player, Room } from './types'
 
 function player(overrides: Partial<Player> = {}): Player {
@@ -117,18 +117,57 @@ describe('isPhaseComplete', () => {
 })
 
 describe('game flow', () => {
-  it('starts round 1 with a question vote and resets scores', () => {
+  it('starts by asking the spirit its name, and resets scores', () => {
     const updates = startGame(room({ phase: 'lobby', round: 0, usedPrompts: [0, 1] }), 1000)
-    expect(updates).toMatchObject({ phase: 'promptVote', round: 1, phaseEndsAt: 1000 + PROMPT_VOTE_MS })
-    expect(updates.promptOptions).toHaveLength(3)
+    expect(updates).toMatchObject({
+      phase: 'answering',
+      round: 1,
+      prompt: NAME_PROMPT.question,
+      roundPrompts: { 1: NAME_PROMPT },
+      phaseEndsAt: 1000 + ANSWER_MS,
+    })
     expect(updates['players/a/score']).toBe(0)
   })
 
-  it('uses the voted prompt', () => {
-    const r = room({ phase: 'promptVote', promptOptions: [0, 2, 3], promptVotes: { 1: { a: '2', b: '2', c: '0' } } })
+  // Firebase rejects a multi-path update where one path contains another.
+  it('never writes a path and something inside it in the same update', () => {
+    const clash = (updates: Record<string, unknown>) => {
+      const paths = Object.keys(updates)
+      return paths.filter((p) => paths.some((q) => q !== p && q.startsWith(p + '/')))
+    }
+    const rooms = [
+      room({ phase: 'lobby', round: 0 }),
+      room({ phase: 'promptVote', round: 2, promptOptions: [0, 1, 2], promptVotes: { 2: { a: '1' } } }),
+      room({ phase: 'questionWrite', round: 2, questions: { 2: { a: 'q1', b: 'q2' } } }),
+      room({ phase: 'questionVote', round: 2, questions: { 2: { a: 'q1', b: 'q2' } } }),
+      room({ phase: 'answering', answers: { 1: { a: 'x', b: 'y' } } }),
+      room({ phase: 'voting', answers: { 1: { a: 'x', b: 'y' } }, votes: { 1: { a: 'b', b: 'a' } } }),
+      room({ phase: 'scores', round: 1 }),
+      room({ phase: 'scores', round: 3 }),
+      room({ phase: 'final', round: 4 }),
+    ]
+    expect(clash(startGame(rooms[0], 0))).toEqual([])
+    for (const r of rooms) expect(clash(nextPhase(r, 0))).toEqual([])
+    expect(clash(backToLobby(rooms[8]))).toEqual([])
+  })
+
+  it('puts the question board between the name and goodbye questions', () => {
+    const next = nextPhase(room({ phase: 'scores', round: 1 }), 1000)
+    expect(next).toMatchObject({ phase: 'promptVote', round: 2, phaseEndsAt: 1000 + PROMPT_VOTE_MS })
+    expect(next.promptOptions).toHaveLength(3)
+  })
+
+  it('uses the voted prompt, and records it for the story', () => {
+    const r = room({
+      phase: 'promptVote',
+      round: 2,
+      promptOptions: [0, 2, 3],
+      promptVotes: { 2: { a: '2', b: '2', c: '0' } },
+    })
     expect(nextPhase(r, 1000)).toEqual({
       phase: 'answering',
-      prompt: PROMPTS[2],
+      prompt: PROMPTS[2].question,
+      'roundPrompts/2': PROMPTS[2],
       usedPrompts: [2],
       lockingIn: null,
       phaseEndsAt: 1000 + ANSWER_MS,
@@ -142,7 +181,7 @@ describe('game flow', () => {
 
   it('picks a listed prompt when nobody voted', () => {
     const r = room({ phase: 'promptVote', promptOptions: [1, 2, 3] })
-    expect([PROMPTS[1], PROMPTS[2], PROMPTS[3]]).toContain(nextPhase(r, 0).prompt)
+    expect([PROMPTS[1], PROMPTS[2], PROMPTS[3]].map((p) => p.question)).toContain(nextPhase(r, 0).prompt)
   })
 
   it('uses a single written question directly', () => {
@@ -157,7 +196,7 @@ describe('game flow', () => {
 
   it('falls back to a listed prompt when nobody wrote a question', () => {
     const r = room({ phase: 'questionWrite', promptOptions: [3] })
-    expect(nextPhase(r, 0)).toMatchObject({ phase: 'answering', prompt: PROMPTS[3], usedPrompts: [3] })
+    expect(nextPhase(r, 0)).toMatchObject({ phase: 'answering', prompt: PROMPTS[3].question, usedPrompts: [3] })
   })
 
   it('asks the most voted written question, ignoring self votes', () => {
@@ -212,11 +251,23 @@ describe('game flow', () => {
     expect(updates['players/b/score']).toBe(100)
   })
 
-  it('goes to the next round, then to final', () => {
-    const next = nextPhase(room({ phase: 'scores', round: 1, usedPrompts: [0] }), 0)
-    expect(next).toMatchObject({ phase: 'promptVote', round: 2 })
+  it('goes through the chosen rounds, then the goodbye question, then the credits', () => {
+    // totalRounds is 2: name (1), two questions (2, 3), goodbye (4).
+    const next = nextPhase(room({ phase: 'scores', round: 2, usedPrompts: [0] }), 0)
+    expect(next).toMatchObject({ phase: 'promptVote', round: 3 })
     expect(next.promptOptions).not.toContain(0)
-    expect(nextPhase(room({ phase: 'scores', round: 2 }), 0)).toEqual({ phase: 'final', phaseEndsAt: null })
+    expect(nextPhase(room({ phase: 'scores', round: 3 }), 0)).toMatchObject({
+      phase: 'answering',
+      round: 4,
+      prompt: GOODBYE_PROMPT.question,
+      'roundPrompts/4': GOODBYE_PROMPT,
+    })
+    expect(nextPhase(room({ phase: 'scores', round: 4 }), 0)).toEqual({ phase: 'final', phaseEndsAt: null })
+  })
+
+  it('records written questions without a story sentence', () => {
+    const r = room({ phase: 'questionWrite', round: 2, questions: { 2: { a: 'Spirit, who stole my fries?' } } })
+    expect(nextPhase(r, 0)['roundPrompts/2']).toEqual({ question: 'Spirit, who stole my fries?' })
   })
 
   it('returns to the lobby with scores cleared', () => {

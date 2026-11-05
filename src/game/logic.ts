@@ -1,6 +1,6 @@
 // Game rules as pure functions. The host's browser calls these to decide what
 // happens next, then writes the returned updates to Firebase.
-import { PROMPTS } from './prompts'
+import { GOODBYE_PROMPT, NAME_PROMPT, PROMPTS } from './prompts'
 import { sortedPlayers } from './room'
 import { promptIntroMs, revealMs } from './spelling'
 import { MAX_ANSWER_LENGTH, MAX_QUESTION_LENGTH, type Phase, type Room, type RoundResult } from './types'
@@ -98,8 +98,14 @@ function pickRandom<T>(items: T[], random: Random): T {
 
 // The order answers are spelled out on the board, and listed for the vote.
 // The same on every device.
-export function answerOrder(room: Room): [string, string][] {
-  return seededShuffle(Object.entries(roundAnswers(room)), `${room.gameStartedAt}:${room.round}`)
+export function answerOrder(room: Room, round: number = room.round): [string, string][] {
+  return seededShuffle(Object.entries(room.answers?.[round] ?? {}), `${room.gameStartedAt}:${round}`)
+}
+
+// A game is the name question, then the number of questions the host picked,
+// then the goodbye question.
+export function lastRound(room: Room): number {
+  return room.totalRounds + 2
 }
 
 // How long the séance lasts: the question types itself out, then the
@@ -187,7 +193,13 @@ export function lockIn(room: Room, now: number): Updates {
   return { lockingIn: true, phaseEndsAt: Math.min(room.phaseEndsAt ?? Infinity, now + LOCK_IN_MS) }
 }
 
+// The first and last rounds ask fixed questions; the ones between go to the
+// question board.
 function beginRound(round: number, room: Room, now: number, random: Random): Updates {
+  if (round === 1) return { round, ...beginAnswering(round, NAME_PROMPT.question, NAME_PROMPT.story, now) }
+  if (round === lastRound(room)) {
+    return { round, ...beginAnswering(round, GOODBYE_PROMPT.question, GOODBYE_PROMPT.story, now) }
+  }
   return {
     phase: 'promptVote',
     round,
@@ -198,12 +210,20 @@ function beginRound(round: number, room: Room, now: number, random: Random): Upd
   }
 }
 
-function beginAnswering(prompt: string, now: number): Updates {
-  return { phase: 'answering', prompt, lockingIn: null, phaseEndsAt: now + ANSWER_MS }
+// Also records the round's question and story sentence for the credits.
+function beginAnswering(round: number, question: string, story: string | null, now: number): Updates {
+  return {
+    phase: 'answering',
+    prompt: question,
+    [`roundPrompts/${round}`]: story ? { question, story } : { question },
+    lockingIn: null,
+    phaseEndsAt: now + ANSWER_MS,
+  }
 }
 
 function answerListedPrompt(room: Room, index: number, now: number): Updates {
-  return { ...beginAnswering(PROMPTS[index], now), usedPrompts: [...(room.usedPrompts ?? []), index] }
+  const { question, story } = PROMPTS[index]
+  return { ...beginAnswering(room.round, question, story, now), usedPrompts: [...(room.usedPrompts ?? []), index] }
 }
 
 function resetGame(room: Room): Updates {
@@ -215,6 +235,7 @@ function resetGame(room: Room): Updates {
     questions: null,
     questionVotes: null,
     usedPrompts: null,
+    roundPrompts: null,
     lockingIn: null,
   }
   for (const [id] of sortedPlayers(room.players)) updates[`players/${id}/score`] = 0
@@ -223,7 +244,10 @@ function resetGame(room: Room): Updates {
 
 export function startGame(room: Room, now: number, random: Random = Math.random): Updates {
   const fresh = { ...room, usedPrompts: [] }
-  return { ...resetGame(room), gameStartedAt: now, ...beginRound(1, fresh, now, random) }
+  // Firebase rejects an update that clears roundPrompts and sets
+  // roundPrompts/1 at once, so the fresh list is written whole.
+  const { 'roundPrompts/1': firstPrompt, ...firstRound } = beginRound(1, fresh, now, random)
+  return { ...resetGame(room), gameStartedAt: now, ...firstRound, roundPrompts: { 1: firstPrompt } }
 }
 
 export function backToLobby(room: Room): Updates {
@@ -247,14 +271,14 @@ export function nextPhase(room: Room, now: number, random: Random = Math.random)
       if (questions.length === 0) {
         return answerListedPrompt(room, pickRandom(room.promptOptions ?? [0], random), now)
       }
-      if (questions.length === 1) return beginAnswering(questions[0], now)
+      if (questions.length === 1) return beginAnswering(room.round, questions[0], null, now)
       return { phase: 'questionVote', lockingIn: null, phaseEndsAt: now + QUESTION_VOTE_MS }
     }
     case 'questionVote': {
       const questions = roundQuestions(room)
       const { winners } = tallyVotes(questions, roundQuestionVotes(room))
       const authorId = pickRandom(winners.length > 0 ? winners : Object.keys(questions), random)
-      return beginAnswering(questions[authorId], now)
+      return beginAnswering(room.round, questions[authorId], null, now)
     }
     case 'answering': {
       if (Object.keys(roundAnswers(room)).length < MIN_ANSWERS_TO_VOTE) {
@@ -280,7 +304,7 @@ export function nextPhase(room: Room, now: number, random: Random = Math.random)
     case 'reveal':
       return { phase: 'scores', phaseEndsAt: now + SCORES_MS }
     case 'scores':
-      return room.round < room.totalRounds
+      return room.round < lastRound(room)
         ? beginRound(room.round + 1, room, now, random)
         : { phase: 'final', phaseEndsAt: null }
     default:

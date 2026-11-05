@@ -1,10 +1,11 @@
-import { finalWinners, roundPoints, roundResult } from '../../game/logic'
+import { roundPoints, roundResult } from '../../game/logic'
 import type { Phase, Room } from '../../game/types'
 import { useHostLoop } from '../../hooks/useHostLoop'
 import { usePhaseFade } from '../../hooks/usePhaseFade'
-import { advancePhase, hostBackToLobby } from '../../lib/game'
+import { advancePhase } from '../../lib/game'
 import { text } from '../../text'
 import { Answering } from './Answering'
+import { Credits } from './Credits'
 import { GameHeader } from './GameHeader'
 import { PromptVote } from './PromptVote'
 import { QuestionVote } from './QuestionVote'
@@ -57,22 +58,7 @@ export function Game({ code, room: liveRoom, playerId, onLeave }: Props) {
           </section>
         )}
 
-        {phase === 'final' && (
-          <section className="panel game-body">
-            <span className="label">{text.finalScores}</span>
-            <Scoreboard room={room} highlight={finalWinners(room)} />
-            {isHost ? (
-              <button className="btn btn--go btn--big" type="button" onClick={() => void hostBackToLobby(code, room)}>
-                {text.playAgain}
-              </button>
-            ) : (
-              <p className="hint">{text.waitingForHostNext}</p>
-            )}
-            <button className="btn btn--quiet" type="button" onClick={onLeave}>
-              {text.leave}
-            </button>
-          </section>
-        )}
+        {phase === 'final' && <Credits code={code} room={room} isHost={isHost} onLeave={onLeave} />}
 
         {/* Lets the host skip the wait on screens that only show results. */}
         {isHost && (phase === 'reveal' || phase === 'scores') && (

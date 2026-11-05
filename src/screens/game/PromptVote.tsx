@@ -8,7 +8,7 @@ import { PlayerProgress } from './PlayerProgress'
 
 export function PromptVote({ code, room, playerId }: { code: string; room: Room; playerId: string }) {
   const choices: Choice[] = [
-    ...(room.promptOptions ?? []).map((index) => ({ key: String(index), text: PROMPTS[index] })),
+    ...(room.promptOptions ?? []).map((index) => ({ key: String(index), text: PROMPTS[index].question })),
     { key: CUSTOM_OPTION, text: text.customOption, special: true },
   ]
   const done = doneIds(room)
