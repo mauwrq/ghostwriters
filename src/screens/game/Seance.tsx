@@ -12,17 +12,13 @@ export function Seance({ room }: { room: Room }) {
   return (
     <section className="seance">
       <div className="panel dialogue">
-        <p className="dialogue__text" aria-live="polite">
-          {words}
-          {spelling && planchette.stage === 'spelling' && <span className="dialogue__cursor" />}
-        </p>
+        <p className="dialogue__text" aria-live="polite">{words}</p>
       </div>
 
       <OuijaBoard x={planchette.x} y={planchette.y} />
 
       <h2 className="panel seance__prompt">
         {room.prompt.slice(0, promptShown)}
-        {promptShown < room.prompt.length && <span className="dialogue__cursor" />}
       </h2>
     </section>
   )

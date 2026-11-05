@@ -438,7 +438,6 @@
   overflow-wrap: anywhere;
 }
 
-.dialogue__cursor,
 .reveal__cursor {
   display: inline-block;
   width: 0.08em;
